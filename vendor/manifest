@@ -41,15 +41,8 @@
 		{
 			"importpath": "github.com/tobischo/gokeepasslib",
 			"repository": "https://github.com/tobischo/gokeepasslib",
-			"revision": "b47c42d9ef1cc272e5340b254a41996fe28bd0ea",
+			"revision": "a554f38769b242c5e8c9ef52937cb4f4bc7b6c71",
 			"branch": "master"
-		},
-		{
-			"importpath": "golang.org/x/crypto/salsa20",
-			"repository": "https://go.googlesource.com/crypto",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"branch": "master",
-			"path": "/salsa20"
 		},
 		{
 			"importpath": "golang.org/x/crypto/ssh/terminal",

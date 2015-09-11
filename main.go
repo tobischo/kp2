@@ -17,6 +17,15 @@ var db *gokeepasslib.Database
 
 func main() {
 
+	var cmdAdd = &cobra.Command{
+		Use:   "add [selector]",
+		Short: "adds a new entry at the given location",
+		Long:  `add builds a new entry at the given location and asks for the information required`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("add")
+		},
+	}
+
 	var cmdBrowse = &cobra.Command{
 		Use:   "browse",
 		Short: "interactive browsing mode",
@@ -32,15 +41,6 @@ func main() {
 		Long:    `copy is for selecting the entry and copying the password into the clipboard`,
 		PreRunE: loadDatabaseCmd,
 		RunE:    copyCmd,
-	}
-
-	var cmdCreate = &cobra.Command{
-		Use:   "create [selector]",
-		Short: "creates a new entry at the given location",
-		Long:  `create builds a new entry at the given location and asks for the information required`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("create")
-		},
 	}
 
 	var cmdGeneratePassword = &cobra.Command{
@@ -106,7 +106,7 @@ func main() {
 	)
 
 	rootCmd.AddCommand(
-		cmdBrowse, cmdCopy, cmdCreate, cmdGeneratePassword, cmdMove,
+		cmdAdd, cmdBrowse, cmdCopy, cmdGeneratePassword, cmdMove,
 		cmdRemove, cmdSearch, cmdVersion,
 	)
 	rootCmd.Execute()

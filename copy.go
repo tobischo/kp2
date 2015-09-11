@@ -20,7 +20,7 @@ func copyCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("%x", string(entry.GetPassword()))
+	fmt.Println(string(entry.GetPassword()))
 
 	return nil
 }
