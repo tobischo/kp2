@@ -4,13 +4,16 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tobischo/gokeepasslib"
 )
 
 const app = "pk2"
 
 var usePassword bool
 var keyFile string
-var file string
+var filePath string
+
+var db *gokeepasslib.Database
 
 func main() {
 
@@ -24,10 +27,11 @@ func main() {
 	}
 
 	var cmdCopy = &cobra.Command{
-		Use:   "copy [selector]",
-		Short: "copies the password into the clipboard",
-		Long:  `copy is for selecting the entry and copying the password into the clipboard`,
-		Run:   copyCmd,
+		Use:     "copy [selector]",
+		Short:   "copies the password into the clipboard",
+		Long:    `copy is for selecting the entry and copying the password into the clipboard`,
+		PreRunE: loadDatabaseCmd,
+		RunE:    copyCmd,
 	}
 
 	var cmdCreate = &cobra.Command{
@@ -97,7 +101,7 @@ func main() {
 		"path to the key file to use for auth",
 	)
 	rootCmd.PersistentFlags().StringVarP(
-		&file, "file", "f", "",
+		&filePath, "file", "f", "",
 		"Keepass2 file to be loaded, setting KP2FILE allows ommiting this flag",
 	)
 

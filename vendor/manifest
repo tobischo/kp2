@@ -50,6 +50,13 @@
 			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
 			"branch": "master",
 			"path": "/salsa20"
+		},
+		{
+			"importpath": "golang.org/x/crypto/ssh/terminal",
+			"repository": "https://go.googlesource.com/crypto",
+			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
+			"branch": "master",
+			"path": "/ssh/terminal"
 		}
 	]
 }
