@@ -41,7 +41,7 @@
 		{
 			"importpath": "github.com/tobischo/gokeepasslib",
 			"repository": "https://github.com/tobischo/gokeepasslib",
-			"revision": "bf7e8fc73136fa5d20150002cba7f482adf3febb",
+			"revision": "b47c42d9ef1cc272e5340b254a41996fe28bd0ea",
 			"branch": "master"
 		},
 		{
