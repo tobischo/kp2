@@ -1,0 +1,55 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/cpuguy83/go-md2man/md2man",
+			"repository": "https://github.com/cpuguy83/go-md2man",
+			"revision": "71acacd42f85e5e82f70a55327789582a5200a90",
+			"branch": "master",
+			"path": "/md2man"
+		},
+		{
+			"importpath": "github.com/inconshreveable/mousetrap",
+			"repository": "https://github.com/inconshreveable/mousetrap",
+			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/russross/blackfriday",
+			"repository": "https://github.com/russross/blackfriday",
+			"revision": "8cec3a854e68dba10faabbe31c089abf4a3e57a6",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/shurcooL/sanitized_anchor_name",
+			"repository": "https://github.com/shurcooL/sanitized_anchor_name",
+			"revision": "244f5ac324cb97e1987ef901a0081a77bfd8e845",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/cobra",
+			"repository": "https://github.com/spf13/cobra",
+			"revision": "4b86c66ef25470e678a4d6a372711d7050344ccc",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/pflag",
+			"repository": "https://github.com/spf13/pflag",
+			"revision": "f735fdff4ffb34299727eb2e3c9abab588742d41",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/tobischo/gokeepasslib",
+			"repository": "https://github.com/tobischo/gokeepasslib",
+			"revision": "bf7e8fc73136fa5d20150002cba7f482adf3febb",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/crypto/salsa20",
+			"repository": "https://go.googlesource.com/crypto",
+			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
+			"branch": "master",
+			"path": "/salsa20"
+		}
+	]
+}
