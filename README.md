@@ -3,7 +3,7 @@ kp2
 
 kp2 is a commandline client for accessing Keepass 2 files (kdbx).
 
-[gokeepasslib](https://github.com/tobischo/gokeepasslib) is ussed to read the file.
+[gokeepasslib](https://github.com/tobischo/gokeepasslib) is used to read the file.
 
 ### Install
 
