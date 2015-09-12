@@ -67,5 +67,9 @@ func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Failed to decode Keepass2 file: %s", err)
 	}
 
+	if err := db.UnlockProtectedEntries(); err != nil {
+		return err
+	}
+
 	return nil
 }

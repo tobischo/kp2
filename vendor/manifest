@@ -2,6 +2,12 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/atotto/clipboard",
+			"repository": "https://github.com/atotto/clipboard",
+			"revision": "dfde2702d61cc95071f9def0fe9fc47d43136d6d",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/cpuguy83/go-md2man/md2man",
 			"repository": "https://github.com/cpuguy83/go-md2man",
 			"revision": "71acacd42f85e5e82f70a55327789582a5200a90",

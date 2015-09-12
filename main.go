@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib"
 )
@@ -17,23 +15,23 @@ var db *gokeepasslib.Database
 
 func main() {
 
-	var cmdAdd = &cobra.Command{
-		Use:   "add [selector]",
-		Short: "adds a new entry at the given location",
-		Long:  `add builds a new entry at the given location and asks for the information required`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("add")
-		},
-	}
+	// var cmdAdd = &cobra.Command{
+	// 	Use:   "add [selector]",
+	// 	Short: "adds a new entry at the given location",
+	// 	Long:  `add builds a new entry at the given location and asks for the information required`,
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		fmt.Println("add")
+	// 	},
+	// }
 
-	var cmdBrowse = &cobra.Command{
-		Use:   "browse",
-		Short: "interactive browsing mode",
-		Long:  "browse is for interactively browsing the Keepass2 file",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("browse")
-		},
-	}
+	// var cmdBrowse = &cobra.Command{
+	// 	Use:   "browse",
+	// 	Short: "interactive browsing mode",
+	// 	Long:  "browse is for interactively browsing the Keepass2 file",
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		fmt.Println("browse")
+	// 	},
+	// }
 
 	var cmdCopy = &cobra.Command{
 		Use:     "copy [selector]",
@@ -43,40 +41,39 @@ func main() {
 		RunE:    copyCmd,
 	}
 
-	var cmdGeneratePassword = &cobra.Command{
-		Use:   "generate [selector]",
-		Short: "generates a new password",
-		Long:  `generate builds a new password for the selected entry and copies it into the clipboard. It has to be accepted before it is persisted`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("generate password")
-		},
-	}
+	// var cmdGeneratePassword = &cobra.Command{
+	// 	Use:   "generate [selector]",
+	// 	Short: "generates a new password",
+	// 	Long:  `generate builds a new password for the selected entry and copies it into the clipboard. It has to be accepted before it is persisted`,
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		fmt.Println("generate password")
+	// 	},
+	// }
 
-	var cmdMove = &cobra.Command{
-		Use:   "move [sourceSelector] [targetSelector]",
-		Short: "moves an entry within the file",
-		Long:  `move takes an entry from the position given with [sourceSelector] and moves it to the group given at [targetSelector]`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("move")
-		},
-	}
+	// var cmdMove = &cobra.Command{
+	// 	Use:   "move [sourceSelector] [targetSelector]",
+	// 	Short: "moves an entry within the file",
+	// 	Long:  `move takes an entry from the position given with [sourceSelector] and moves it to the group given at [targetSelector]`,
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		fmt.Println("move")
+	// 	},
+	// }
 
-	var cmdRemove = &cobra.Command{
-		Use:   "remove [selector]",
-		Short: "removes an entry from the keepass file",
-		Long:  `remove takes an entry out of the Keepass file. It asks for confirmation before persisting the file`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("remove")
-		},
-	}
+	// var cmdRemove = &cobra.Command{
+	// 	Use:   "remove [selector]",
+	// 	Short: "removes an entry from the keepass file",
+	// 	Long:  `remove takes an entry out of the Keepass file. It asks for confirmation before persisting the file`,
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		fmt.Println("remove")
+	// 	},
+	// }
 
 	var cmdSearch = &cobra.Command{
-		Use:   "search [selector]",
-		Short: "looks through groups and entries",
-		Long:  `search returns a list of entry selectors matching the given selector pattern`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("search")
-		},
+		Use:     "search [selector]",
+		Short:   "looks through groups and entries",
+		Long:    `search returns a list of entry selectors matching the given selector pattern`,
+		PreRunE: loadDatabaseCmd,
+		Run:     searchCmd,
 	}
 
 	var cmdVersion = &cobra.Command{
@@ -106,8 +103,14 @@ func main() {
 	)
 
 	rootCmd.AddCommand(
-		cmdAdd, cmdBrowse, cmdCopy, cmdGeneratePassword, cmdMove,
-		cmdRemove, cmdSearch, cmdVersion,
+		// cmdAdd,
+		// cmdBrowse,
+		cmdCopy,
+		// cmdGeneratePassword,
+		// cmdMove,
+		// cmdRemove,
+		cmdSearch,
+		cmdVersion,
 	)
 	rootCmd.Execute()
 }
