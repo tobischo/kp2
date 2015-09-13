@@ -1,7 +1,7 @@
 kp2
 ===
 
-kp2 is a commandline client for accessing Keepass 2 files (kdbx).
+kp2 is a commandline tool for accessing Keepass 2 files (kdbx).
 
 [gokeepasslib](https://github.com/tobischo/gokeepasslib) is used to read the file.
 
