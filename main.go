@@ -68,14 +68,6 @@ func main() {
 	// 	},
 	// }
 
-	var cmdSearch = &cobra.Command{
-		Use:     "search [selector]",
-		Short:   "looks through groups and entries",
-		Long:    `search returns a list of entry selectors matching the given selector pattern`,
-		PreRunE: loadDatabaseCmd,
-		Run:     searchCmd,
-	}
-
 	var cmdVersion = &cobra.Command{
 		Use:   "version",
 		Short: "shows the version",
@@ -109,7 +101,6 @@ func main() {
 		// cmdGeneratePassword,
 		// cmdMove,
 		// cmdRemove,
-		cmdSearch,
 		cmdVersion,
 	)
 	rootCmd.Execute()

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/tobischo/gokeepasslib"
 )
@@ -40,5 +42,42 @@ func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, 
 		}
 	}
 
+	entries := searchEntries(selectors, g)
+
+	for i, entry := range entries {
+		fmt.Printf("%3d %s\n", i, entry)
+	}
+
+	fmt.Print("Selection: ")
+	var response string
+
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	index, err := strconv.Atoi(response)
+	if err != nil {
+		return nil, err
+	}
+
+	return readEntry(strings.Split(entries[index], "/"), g)
+
 	return nil, fmt.Errorf("Failed to locate entry at selector")
+}
+
+func searchEntries(selectors []string, g *gokeepasslib.Group) []string {
+	entries := listEntries(g)
+
+	selector := strings.ToLower(strings.Join(selectors, "/"))
+
+	var selectedEntries = make([]string, 0)
+
+	for _, entry := range entries {
+		if strings.Contains(strings.ToLower(entry), selector) {
+			selectedEntries = append(selectedEntries, entry)
+		}
+	}
+
+	return selectedEntries
 }
