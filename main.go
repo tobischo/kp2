@@ -5,7 +5,10 @@ import (
 	"github.com/tobischo/gokeepasslib"
 )
 
-const app = "pk2"
+const (
+	app        = "pk2"
+	timeFormat = "2006-01-02 15:04:05 -0700"
+)
 
 var usePassword bool
 var keyFile string
@@ -49,6 +52,14 @@ func main() {
 	// 		fmt.Println("generate password")
 	// 	},
 	// }
+
+	var cmdInfo = &cobra.Command{
+		Use:     "info [selector]",
+		Short:   "shows the information for an entry",
+		Long:    `info is for listing all information for a command (except the password)`,
+		PreRunE: loadDatabaseCmd,
+		RunE:    infoCmd,
+	}
 
 	// var cmdMove = &cobra.Command{
 	// 	Use:   "move [sourceSelector] [targetSelector]",
@@ -99,6 +110,7 @@ func main() {
 		// cmdBrowse,
 		cmdCopy,
 		// cmdGeneratePassword,
+		cmdInfo,
 		// cmdMove,
 		// cmdRemove,
 		cmdVersion,

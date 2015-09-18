@@ -23,13 +23,15 @@ func paramSetupCmd(cmd *cobra.Command, args []string) {
 func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
 	var password string
 	if usePassword {
-		fmt.Println("Enter password:")
+		fmt.Print("Enter password: ")
 		pw, err := terminal.ReadPassword(0)
 		if err != nil {
 			return fmt.Errorf("Failed to read password: '%s'", err)
 		}
 
 		password = string(pw)
+
+		fmt.Println()
 	}
 
 	var credentials *gokeepasslib.DBCredentials

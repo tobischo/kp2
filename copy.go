@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/atotto/clipboard"
@@ -18,6 +19,8 @@ func copyCmd(cmd *cobra.Command, args []string) error {
 	if err := clipboard.WriteAll(entry.GetPassword()); err != nil {
 		return err
 	}
+
+	fmt.Printf("UserName: %s\n", entry.GetContent("UserName"))
 
 	return nil
 }

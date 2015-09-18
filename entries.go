@@ -56,6 +56,8 @@ func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, 
 		return nil, err
 	}
 
+	fmt.Println()
+
 	index, err := strconv.Atoi(response)
 	if err != nil {
 		return nil, err
