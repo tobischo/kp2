@@ -20,38 +20,48 @@ func paramSetupCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
-	var password string
-	if usePassword {
-		fmt.Print("Enter password: ")
-		pw, err := terminal.ReadPassword(0)
-		if err != nil {
-			return fmt.Errorf("Failed to read password: '%s'", err)
-		}
-
-		password = string(pw)
-
-		fmt.Println()
+func readPassword(text string) (string, error) {
+	fmt.Print(text)
+	pw, err := terminal.ReadPassword(0)
+	if err != nil {
+		return "", fmt.Errorf("Failed to read password: '%s'", err)
 	}
+	fmt.Println()
+	return string(pw), nil
+}
 
-	var credentials *gokeepasslib.DBCredentials
-	var err error
-
+func pickCredentialMode(password string) (*gokeepasslib.DBCredentials, error) {
 	switch {
 	case usePassword && keyFile != "":
-		credentials, err = gokeepasslib.NewPasswordAndKeyCredentials(
+		return gokeepasslib.NewPasswordAndKeyCredentials(
 			password, keyFile,
 		)
 	case usePassword:
-		credentials = gokeepasslib.NewPasswordCredentials(
+		credentials := gokeepasslib.NewPasswordCredentials(
 			password,
 		)
+		return credentials, nil
 	case keyFile != "":
-		credentials, err = gokeepasslib.NewKeyCredentials(keyFile)
+		return gokeepasslib.NewKeyCredentials(keyFile)
 	default:
-		return fmt.Errorf("Key file or password has to be provided")
+		return nil, fmt.Errorf("Key file or password has to be provided")
+	}
+}
+
+func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
+	var (
+		password string
+		err      error
+	)
+
+	if usePassword {
+		password, err = readPassword("Enter password: ")
+		if err != nil {
+			return err
+		}
 	}
 
+	credentials, err := pickCredentialMode(password)
 	if err != nil {
 		return fmt.Errorf("Failed to setup credentials: '%s'", err)
 	}

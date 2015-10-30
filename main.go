@@ -57,9 +57,16 @@ func main() {
 	var cmdInfo = &cobra.Command{
 		Use:     "info [selector]",
 		Short:   "shows the information for an entry",
-		Long:    `info is for listing all information for a command (except the password)`,
+		Long:    `info is for listing all relevant information for a command (except the password)`,
 		PreRunE: loadDatabaseCmd,
 		RunE:    infoCmd,
+	}
+
+	var cmdInit = &cobra.Command{
+		Use:   "init [no options!]",
+		Short: "initializes a new kdbx file",
+		Long:  `init is for creating a new basic keepass file at the given location. It will fail if a file already exists`,
+		RunE:  initCmd,
 	}
 
 	// var cmdMove = &cobra.Command{
@@ -113,6 +120,7 @@ func main() {
 		cmdCopy,
 		// cmdGeneratePassword,
 		cmdInfo,
+		cmdInit,
 		// cmdMove,
 		// cmdRemove,
 		cmdVersion,
