@@ -13,6 +13,7 @@ const (
 var usePassword bool
 var keyFile string
 var filePath string
+var changed bool = false
 
 var db *gokeepasslib.Database
 
@@ -87,9 +88,10 @@ func main() {
 	}
 
 	var rootCmd = &cobra.Command{
-		Use:              "kp2",
-		Short:            "tool to access Keepass2 files form the command line",
-		PersistentPreRun: paramSetupCmd,
+		Use:               "kp2",
+		Short:             "tool to access Keepass2 files form the command line",
+		PersistentPreRun:  paramSetupCmd,
+		PersistentPostRun: persistDatabaseIfChanged,
 	}
 
 	rootCmd.PersistentFlags().BoolVarP(

@@ -18,10 +18,13 @@ func infoCmd(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Title:             %s\n", entry.GetTitle())
 	fmt.Printf("Creation:          %s\n", entry.Times.CreationTime.Format(timeFormat))
 	fmt.Printf("Last Modification: %s\n", entry.Times.LastModificationTime.Format(timeFormat))
+	fmt.Printf("Last Access:       %s\n", entry.Times.LastAccessTime.Format(timeFormat))
 	fmt.Printf("UserName:          %s\n", entry.GetContent("UserName"))
 	fmt.Printf("URL:               %s\n", entry.GetContent("URL"))
 
 	fmt.Printf("Notes:\n%s\n", entry.GetContent("Notes"))
+
+	markAsAccessed(entry)
 
 	return nil
 }

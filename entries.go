@@ -4,9 +4,16 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tobischo/gokeepasslib"
 )
+
+func markAsAccessed(entry *gokeepasslib.Entry) {
+	access := time.Now()
+	entry.Times.LastAccessTime = &access
+	changed = true
+}
 
 func listEntries(g *gokeepasslib.Group) []string {
 	var entries = make([]string, 0)
@@ -29,15 +36,15 @@ func listEntries(g *gokeepasslib.Group) []string {
 
 func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, error) {
 	if len(selectors) == 1 {
-		for _, entry := range g.Entries {
+		for i, entry := range g.Entries {
 			if entry.GetTitle() == selectors[0] {
-				return &entry, nil
+				return &g.Entries[i], nil
 			}
 		}
 	} else {
-		for _, group := range g.Groups {
+		for i, group := range g.Groups {
 			if group.Name == selectors[0] {
-				return readEntry(selectors[1:], &group)
+				return readEntry(selectors[1:], &g.Groups[i])
 			}
 		}
 	}
