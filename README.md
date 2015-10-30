@@ -8,7 +8,7 @@ kp2 is a commandline tool for accessing Keepass 2 files (kdbx).
 ### Install
 
 ```
-go get github.com/tobischo/kp2
+go get -u github.com/tobischo/kp2
 ```
 
 ### Usage
