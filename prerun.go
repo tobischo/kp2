@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib"
 )
@@ -17,34 +15,6 @@ func paramSetupCmd(cmd *cobra.Command, args []string) {
 
 	if keyFile == "" {
 		usePassword = true
-	}
-}
-
-func readPassword(text string) (string, error) {
-	fmt.Print(text)
-	pw, err := terminal.ReadPassword(0)
-	if err != nil {
-		return "", fmt.Errorf("Failed to read password: '%s'", err)
-	}
-	fmt.Println()
-	return string(pw), nil
-}
-
-func pickCredentialMode(password string) (*gokeepasslib.DBCredentials, error) {
-	switch {
-	case usePassword && keyFile != "":
-		return gokeepasslib.NewPasswordAndKeyCredentials(
-			password, keyFile,
-		)
-	case usePassword:
-		credentials := gokeepasslib.NewPasswordCredentials(
-			password,
-		)
-		return credentials, nil
-	case keyFile != "":
-		return gokeepasslib.NewKeyCredentials(keyFile)
-	default:
-		return nil, fmt.Errorf("Key file or password has to be provided")
 	}
 }
 

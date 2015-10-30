@@ -20,7 +20,6 @@ kp2 --help
 ### TODO
 
 * Write tests
-* Implement `add` command
 * Implement `browse` command
 * Implement `generate` command
 * Implement `move` command

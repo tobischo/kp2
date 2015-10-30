@@ -50,22 +50,20 @@ func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, 
 	}
 
 	entries := searchEntries(selectors, g)
+	if len(entries) < 1 {
+		return nil, fmt.Errorf("No entry found")
+	}
 
 	for i, entry := range entries {
 		fmt.Printf("%3d %s\n", i, entry)
 	}
 
-	fmt.Print("Selection: ")
-	var response string
-
-	_, err := fmt.Scanln(&response)
+	selection, err := readString("Selection: ")
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println()
-
-	index, err := strconv.Atoi(response)
+	index, err := strconv.Atoi(selection)
 	if err != nil {
 		return nil, err
 	}

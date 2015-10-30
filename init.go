@@ -16,24 +16,14 @@ func initCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	var (
-		password         string
-		passwordRepeated string
-		err              error
+		password string
+		err      error
 	)
 
 	if usePassword {
-		password, err = readPassword("Enter password: ")
+		password, err = readPasswordWithConfirmation()
 		if err != nil {
 			return err
-		}
-
-		passwordRepeated, err = readPassword("Repeat password: ")
-		if err != nil {
-			return err
-		}
-
-		if password != passwordRepeated {
-			return fmt.Errorf("Password and repetition do not match")
 		}
 	}
 
