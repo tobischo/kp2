@@ -38,6 +38,16 @@ func addCmd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		entryUserName, err := readString("Entry UserName: ")
+		if err != nil {
+			return err
+		}
+
+		entryURL, err := readString("Entry URL: ")
+		if err != nil {
+			return err
+		}
+
 		for _, e := range group.Entries {
 			if e.GetTitle() == entryTitle {
 				return fmt.Errorf("Entry Title must be unique within a parent group")
@@ -51,8 +61,11 @@ func addCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		values := []gokeepasslib.ValueData{
+			{Key: "Notes", Value: gokeepasslib.V{Content: "Notes"}},
 			{Key: "Password", Value: gokeepasslib.V{Content: password, Protected: true}},
 			{Key: "Title", Value: gokeepasslib.V{Content: entryTitle}},
+			{Key: "URL", Value: gokeepasslib.V{Content: entryURL}},
+			{Key: "UserName", Value: gokeepasslib.V{Content: entryUserName}},
 		}
 
 		newEntry := gokeepasslib.NewEntry()

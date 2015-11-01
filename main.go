@@ -21,14 +21,14 @@ var db *gokeepasslib.Database
 
 func main() {
 
-	var cmdAdd = &cobra.Command{
-		Use:     "add [selector]",
-		Short:   "adds a new entry at the given location",
-		Long:    `add builds a new entry at the given location and asks for the information required`,
-		PreRunE: loadDatabaseCmd,
-		RunE:    addCmd,
-	}
-	cmdAdd.Flags().BoolVarP(&groupFlag, "group", "g", false, "if set to true adds a group instead of an entry")
+	// var cmdAdd = &cobra.Command{
+	// 	Use:     "add [selector]",
+	// 	Short:   "adds a new entry at the given location",
+	// 	Long:    `add builds a new entry at the given location and asks for the information required`,
+	// 	PreRunE: loadDatabaseCmd,
+	// 	RunE:    addCmd,
+	// }
+	// cmdAdd.Flags().BoolVarP(&groupFlag, "group", "g", false, "if set to true adds a group instead of an entry")
 
 	// var cmdBrowse = &cobra.Command{
 	// 	Use:   "browse",
@@ -117,7 +117,7 @@ func main() {
 	)
 
 	rootCmd.AddCommand(
-		cmdAdd,
+		// cmdAdd,
 		// cmdBrowse,
 		cmdCopy,
 		// cmdGeneratePassword,
