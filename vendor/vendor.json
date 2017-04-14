@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "17a59cfcQiuB8YH9p1ebdhMqqrk=",
+			"path": "github.com/tobischo/gokeepasslib",
+			"revision": "f58199126878e8c06d88780b177337c1a31d2f87",
+			"revisionTime": "2017-04-14T16:34:07Z"
+		}
+	],
+	"rootPath": "github.com/tobischo/kp2"
+}
