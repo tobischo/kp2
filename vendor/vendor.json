@@ -3,10 +3,10 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "VDjn89X1ZdJ74iGC7pY7PaNbHss=",
+			"checksumSHA1": "pDMhIn2pwKi5ZqCWXG4UV8zc1Xs=",
 			"path": "github.com/tobischo/gokeepasslib",
-			"revision": "a4e2c63c22aeba524991e5590137f76f6336ee74",
-			"revisionTime": "2017-07-19T17:12:42Z"
+			"revision": "2c5c862670c1c5117739022c7b4ff231b3915bef",
+			"revisionTime": "2017-07-21T10:58:16Z"
 		}
 	],
 	"rootPath": "github.com/tobischo/kp2"

@@ -148,8 +148,8 @@ type Group struct {
 	EnableAutoType          string      `xml:"EnableAutoType"`
 	EnableSearching         string      `xml:"EnableSearching"`
 	LastTopVisibleEntry     string      `xml:"LastTopVisibleEntry"`
-	Groups                  []Group     `xml:"Group,omitempty"`
 	Entries                 []Entry     `xml:"Entry,omitempty"`
+	Groups                  []Group     `xml:"Group,omitempty"`
 }
 
 //NewGroup returns a new group with time data and uuid set
@@ -276,14 +276,14 @@ type ValueData struct {
 
 // V is a wrapper for the content of a value, so that it can store whether it is protected
 type V struct {
-	Content   string      `xml:",innerxml"`
+	Content   string      `xml:",chardata"`
 	Protected boolWrapper `xml:"Protected,attr,omitempty"`
 }
 
 type AutoTypeData struct {
-	Enabled                 boolWrapper         `xml:"Enabled"`
-	DataTransferObfuscation int64               `xml:"DataTransferObfuscation"`
-	Association             AutoTypeAssociation `xml:"Association"`
+	Enabled                 boolWrapper          `xml:"Enabled"`
+	DataTransferObfuscation int64                `xml:"DataTransferObfuscation"`
+	Association             *AutoTypeAssociation `xml:"Association,omitempty"`
 }
 
 type AutoTypeAssociation struct {
