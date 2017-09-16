@@ -47,14 +47,12 @@ func main() {
 		RunE:    copyCmd,
 	}
 
-	// var cmdGeneratePassword = &cobra.Command{
-	// 	Use:   "generate [selector]",
-	// 	Short: "generates a new password",
-	// 	Long:  `generate builds a new password for the selected entry and copies it into the clipboard. It has to be accepted before it is persisted`,
-	// 	Run: func(cmd *cobra.Command, args []string) {
-	// 		fmt.Println("generate password")
-	// 	},
-	// }
+	var cmdGeneratePassword = &cobra.Command{
+		Use:   "generate",
+		Short: "generates a new password",
+		Long:  `generate builds a new password for the selected entry and copies it into the clipboard`,
+		RunE:  generateCmd,
+	}
 
 	var cmdInfo = &cobra.Command{
 		Use:     "info [selector]",
@@ -120,7 +118,7 @@ func main() {
 		// cmdAdd,
 		// cmdBrowse,
 		cmdCopy,
-		// cmdGeneratePassword,
+		cmdGeneratePassword,
 		cmdInfo,
 		cmdInit,
 		// cmdMove,
