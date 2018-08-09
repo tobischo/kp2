@@ -6,12 +6,9 @@ package pflag
 
 import (
 	goflag "flag"
-	"fmt"
 	"reflect"
 	"strings"
 )
-
-var _ = fmt.Print
 
 // flagValueWrapper implements pflag.Value around a flag.Value.  The main
 // difference here is the addition of the Type method that returns a string
@@ -60,6 +57,10 @@ func (v *flagValueWrapper) Type() string {
 	return v.flagType
 }
 
+// PFlagFromGoFlag will return a *pflag.Flag given a *flag.Flag
+// If the *flag.Flag.Name was a single character (ex: `v`) it will be accessiblei
+// with both `-v` and `--v` in flags. If the golang flag was more than a single
+// character (ex: `verbose`) it will only be accessible via `--verbose`
 func PFlagFromGoFlag(goflag *goflag.Flag) *Flag {
 	// Remember the default value as a string; it won't change.
 	flag := &Flag{
@@ -70,12 +71,17 @@ func PFlagFromGoFlag(goflag *goflag.Flag) *Flag {
 		//DefValue: goflag.DefValue,
 		DefValue: goflag.Value.String(),
 	}
+	// Ex: if the golang flag was -v, allow both -v and --v to work
+	if len(flag.Name) == 1 {
+		flag.Shorthand = flag.Name
+	}
 	if fv, ok := goflag.Value.(goBoolFlag); ok && fv.IsBoolFlag() {
 		flag.NoOptDefVal = "true"
 	}
 	return flag
 }
 
+// AddGoFlag will add the given *flag.Flag to the pflag.FlagSet
 func (f *FlagSet) AddGoFlag(goflag *goflag.Flag) {
 	if f.Lookup(goflag.Name) != nil {
 		return
@@ -84,6 +90,7 @@ func (f *FlagSet) AddGoFlag(goflag *goflag.Flag) {
 	f.AddFlag(newflag)
 }
 
+// AddGoFlagSet will add the given *flag.FlagSet to the pflag.FlagSet
 func (f *FlagSet) AddGoFlagSet(newSet *goflag.FlagSet) {
 	if newSet == nil {
 		return
@@ -91,4 +98,8 @@ func (f *FlagSet) AddGoFlagSet(newSet *goflag.FlagSet) {
 	newSet.VisitAll(func(goflag *goflag.Flag) {
 		f.AddGoFlag(goflag)
 	})
+	if f.addedGoFlagSets == nil {
+		f.addedGoFlagSets = make([]*goflag.FlagSet, 0)
+	}
+	f.addedGoFlagSets = append(f.addedGoFlagSets, newSet)
 }

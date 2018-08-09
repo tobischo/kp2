@@ -10,7 +10,7 @@ import (
 )
 
 func markAsAccessed(entry *gokeepasslib.Entry) {
-	access := time.Now()
+	access := gokeepasslib.TimeWrapper(time.Now())
 	entry.Times.LastAccessTime = &access
 	changed = true
 }

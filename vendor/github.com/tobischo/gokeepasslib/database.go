@@ -1,9 +1,11 @@
 package gokeepasslib
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 )
@@ -125,4 +127,15 @@ func (db *Database) Cipher() (cipher.Block, error) {
 		return nil, err
 	}
 	return aes.NewCipher(masterKey)
+}
+
+func (db *Database) buildHeaderHash() string {
+	//Calculate hash
+	buffer := bytes.NewBuffer(make([]byte, 0))
+
+	db.Signature.WriteTo(buffer)
+	buffer.Write(db.Headers.RawData)
+
+	hash := sha256.Sum256([]byte(buffer.Bytes()))
+	return base64.StdEncoding.EncodeToString(hash[:])
 }
