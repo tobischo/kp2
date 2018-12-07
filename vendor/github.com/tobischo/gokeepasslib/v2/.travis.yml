@@ -1,0 +1,14 @@
+language: go
+
+install: true
+
+before_script: go get
+
+script: go test
+
+go_import_path: github.com/tobischo/gokeepasslib/v2
+go:
+  - 1.9.7
+  - 1.10.5
+  - 1.11.2
+  - tip

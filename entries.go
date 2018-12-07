@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/tobischo/gokeepasslib"
+	"github.com/tobischo/gokeepasslib/v2"
+	"github.com/tobischo/gokeepasslib/v2/wrappers"
 )
 
 func markAsAccessed(entry *gokeepasslib.Entry) {
-	access := gokeepasslib.TimeWrapper(time.Now())
+	access := wrappers.Now()
 	entry.Times.LastAccessTime = &access
 	changed = true
 }

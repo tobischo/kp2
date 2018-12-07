@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tobischo/gokeepasslib"
+	"github.com/tobischo/gokeepasslib/v2"
 )
 
 func listGroups(g *gokeepasslib.Group) []string {

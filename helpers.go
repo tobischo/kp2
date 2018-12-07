@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/tobischo/gokeepasslib"
+	"github.com/tobischo/gokeepasslib/v2"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
