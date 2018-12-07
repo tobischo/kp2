@@ -23,3 +23,5 @@ _testmain.go
 
 #ignore results of coverage test
 *.out
+
+kp2
