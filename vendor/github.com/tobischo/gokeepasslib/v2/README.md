@@ -15,11 +15,16 @@ Use `go get` to retrieve the latest version:
 go get -u github.com/tobischo/gokeepasslib
 ```
 
-Include it in an application:
+Include it in an application (modulized):
 ```
 import "github.com/tobischo/gokeepasslib/v2"
 ```
 
+For non-modulized applications use:
+```
+import "github.com/tobischo/gokeepasslib"
+```
+Note that this may cause breaking changes when updating from a previous version.
 
 ### Example: reading a file
 
@@ -54,6 +59,10 @@ In kdbx files, which are encrypted using the file credentials, fields are protec
 ### Example: writing a file
 
 See [examples/example-writing.go](examples/example-writing.go)
+
+### Example: deleting a file
+
+See [examples/example-deleting.go](examples/example-deleting.go)
 
 ### TODO
 
