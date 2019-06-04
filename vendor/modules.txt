@@ -3,22 +3,22 @@ github.com/aead/argon2
 # github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 github.com/aead/chacha20
 github.com/aead/chacha20/chacha
-# github.com/atotto/clipboard v0.1.1
+# github.com/atotto/clipboard v0.1.2
 github.com/atotto/clipboard
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/spf13/cobra v0.0.3
+# github.com/spf13/cobra v0.0.4
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/tobischo/gokeepasslib/v2 v2.0.1
+# github.com/tobischo/gokeepasslib/v2 v2.0.3
 github.com/tobischo/gokeepasslib/v2
 github.com/tobischo/gokeepasslib/v2/wrappers
 github.com/tobischo/gokeepasslib/v2/crypto
-# golang.org/x/crypto v0.0.0-20190123085648-057139ce5d2b
+# golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/blake2b
-# golang.org/x/sys v0.0.0-20190124100055-b90733256f2e
+# golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu
