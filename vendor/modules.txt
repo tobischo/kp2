@@ -7,18 +7,18 @@ github.com/aead/chacha20/chacha
 github.com/atotto/clipboard
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/spf13/cobra v0.0.4
+# github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/tobischo/gokeepasslib/v2 v2.0.3
+# github.com/tobischo/gokeepasslib/v2 v2.1.1
 github.com/tobischo/gokeepasslib/v2
 github.com/tobischo/gokeepasslib/v2/wrappers
 github.com/tobischo/gokeepasslib/v2/crypto
-# golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
+# golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/blake2b
-# golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed
+# golang.org/x/sys v0.0.0-20190614084037-d442b75600c5
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu
