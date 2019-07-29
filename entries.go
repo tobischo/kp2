@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tobischo/gokeepasslib/v2"
-	"github.com/tobischo/gokeepasslib/v2/wrappers"
+	"github.com/tobischo/gokeepasslib/v3"
+	"github.com/tobischo/gokeepasslib/v3/wrappers"
 )
 
 func markAsAccessed(entry *gokeepasslib.Entry) {

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/tobischo/gokeepasslib/v2"
+	"github.com/tobischo/gokeepasslib/v3"
 )
 
 func initCmd(cmd *cobra.Command, args []string) error {

@@ -11,14 +11,14 @@ github.com/inconshreveable/mousetrap
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/tobischo/gokeepasslib/v2 v2.1.1
-github.com/tobischo/gokeepasslib/v2
-github.com/tobischo/gokeepasslib/v2/wrappers
-github.com/tobischo/gokeepasslib/v2/crypto
-# golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
+# github.com/tobischo/gokeepasslib/v3 v3.0.0
+github.com/tobischo/gokeepasslib/v3
+github.com/tobischo/gokeepasslib/v3/wrappers
+github.com/tobischo/gokeepasslib/v3/crypto
+# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/blake2b
-# golang.org/x/sys v0.0.0-20190614084037-d442b75600c5
+# golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu

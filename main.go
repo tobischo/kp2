@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/tobischo/gokeepasslib/v2"
+	"github.com/tobischo/gokeepasslib/v3"
 )
 
 const (

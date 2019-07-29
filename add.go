@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tobischo/gokeepasslib/v2"
+	"github.com/tobischo/gokeepasslib/v3"
+	"github.com/tobischo/gokeepasslib/v3/wrappers"
 )
 
 func addCmd(cmd *cobra.Command, args []string) error {
@@ -62,7 +63,7 @@ func addCmd(cmd *cobra.Command, args []string) error {
 
 		values := []gokeepasslib.ValueData{
 			{Key: "Notes", Value: gokeepasslib.V{Content: "Notes"}},
-			{Key: "Password", Value: gokeepasslib.V{Content: password, Protected: true}},
+			{Key: "Password", Value: gokeepasslib.V{Content: password, Protected: wrappers.NewBoolWrapper(true)}},
 			{Key: "Title", Value: gokeepasslib.V{Content: entryTitle}},
 			{Key: "URL", Value: gokeepasslib.V{Content: entryURL}},
 			{Key: "UserName", Value: gokeepasslib.V{Content: entryUserName}},
