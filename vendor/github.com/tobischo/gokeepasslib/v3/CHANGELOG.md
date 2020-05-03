@@ -1,3 +1,32 @@
+### v3.0.4
+
+* Ensure time values are formatted according to the version when encoding the DB to file
+
+### v3.0.3
+
+* Split up `BoolWrapper` and `NullableBoolWrapper`
+
+### v3.0.2
+
+* Improve AES decrypt performance (cont.)
+
+### v3.0.1
+
+* Improve AES decrypt performance
+
+### v3.0.0
+
+* Fix `BoolWrapper` to support null values
+    - This introduced a breaking change
+
+### v2.1.3
+
+* Fix `TimeWrapper` marshalling and unmarshalling
+
+### v2.1.2
+
+* Attempt to fix `TimeWrapper`
+
 ### v2.1.1
 
 * Add `ParseKeyData` to allow loading keys without file operation
