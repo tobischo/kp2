@@ -9,18 +9,25 @@ import (
 	"time"
 )
 
+// The lower value for KDBX4 times is 0001-01-01.
+// Since the time values are stored as seconds since that time,
+// we need an offset to calculate that value.
+// zeroUnixOffset represents time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+// which can be used as offset here when using `.Unix()` as the conversion into an integer
+// from `time.Time`.
+// Since nix time counts since 1970-01-01, any value before that would be negative,
+// which also makes this offset negative. Substracting this value from any other
+// time value will increase it by as much. So even a value before 1970 would be correct
+// converted back and forth.
+// This value is set directly as int64 const to avoid having to initialize time.Time values
+// all the time
+const zeroUnixOffset int64 = -62135596800
+
 // TimeWrapper is a time.Time wrapper that provides xml marshaling and unmarshaling
 type TimeWrapper struct {
 	Formatted bool      // True for Kdbx v3.1 (formatted as RFC3339)
 	Time      time.Time // Time value
 }
-
-// Limit of int64 for time.Add
-// time.Duration allows for a maximum of ~290 years to be covered with 1 duration.
-// https://golang.org/pkg/time/#Duration
-// In order to cover the distance in seconds from 01.01.0001 to the timestamp, we have
-// to go stetp by step.
-const intLimit int64 = 9000000000
 
 type TimeOption func(*TimeWrapper)
 
@@ -63,21 +70,7 @@ func (tw TimeWrapper) MarshalText() ([]byte, error) {
 		ret = t.AppendFormat(b, time.RFC3339)
 	} else {
 		// Kdbx v4 - Count since year 1
-		total := float64(0)
-		// Uses a zero value instead of `intLimit` here because we need a `time.Duration` value
-		// and therefore are using `(*time).Sub`
-		zero := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-
-		temp := t
-		for {
-			diff := temp.Sub(zero)
-			if diff.Seconds() == 0 {
-				break
-			}
-
-			total = total + diff.Seconds()
-			temp = temp.Add(-diff)
-		}
+		total := t.Unix() - zeroUnixOffset
 
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(total))
@@ -108,16 +101,7 @@ func (tw *TimeWrapper) UnmarshalText(data []byte) error {
 		}
 
 		// Count since year 1
-		t = time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-		for {
-			if buf < intLimit {
-				t = t.Add(time.Duration(buf) * time.Second)
-				break
-			} else {
-				t = t.Add(time.Duration(intLimit) * time.Second)
-				buf -= intLimit
-			}
-		}
+		t = time.Unix(zeroUnixOffset+buf, 0)
 		formatted = false
 	} else {
 		formatted = true

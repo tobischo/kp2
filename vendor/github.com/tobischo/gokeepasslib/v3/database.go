@@ -26,20 +26,38 @@ func WithDatabaseFormattedTime(formatted bool) DatabaseOption {
 	}
 }
 
-// NewDatabase creates a new database with some sensable default settings.
+func WithDatabaseKDBXVersion3() DatabaseOption {
+	return func(db *Database) {
+		db.Header = NewKDBX3Header()
+	}
+}
+
+func WithDatabaseKDBXVersion4() DatabaseOption {
+	return func(db *Database) {
+		db.Header = NewKDBX4Header()
+		withDBContentKDBX4InnerHeader(db.Content)
+	}
+}
+
+// NewDatabase creates a new database with some sensable default settings in KDBX version 3.1.
 // To create a database with no settings pre-set, use gokeepasslib.Database{}
 func NewDatabase(options ...DatabaseOption) *Database {
-	header := NewHeader()
 	db := &Database{
 		Options:     NewOptions(),
 		Credentials: new(DBCredentials),
-		Header:      header,
-		Hashes:      NewHashes(header),
 		Content:     NewContent(),
 	}
 
 	for _, option := range options {
 		option(db)
+	}
+
+	if db.Header == nil {
+		db.Header = NewHeader()
+	}
+
+	if db.Hashes == nil {
+		db.Hashes = NewHashes(db.Header)
 	}
 
 	return db
@@ -126,5 +144,8 @@ func (db *Database) LockProtectedEntries() error {
 type ErrRequiredAttributeMissing string
 
 func (e ErrRequiredAttributeMissing) Error() string {
-	return fmt.Sprintf("gokeepasslib: operation can not be performed if database does not have %s", e)
+	return fmt.Sprintf(
+		"gokeepasslib: operation can not be performed if database does not have %s",
+		string(e),
+	)
 }

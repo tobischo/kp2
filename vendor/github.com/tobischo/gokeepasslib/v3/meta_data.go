@@ -15,6 +15,12 @@ type MemProtection struct {
 
 type MetaDataOption func(*MetaData)
 
+// CustomIcon is the structure needed to store custom icons.  Unsure of what version/format requires this
+type CustomIcon struct {
+	UUID UUID   `xml:"UUID"` //Entry's CustomIcon UUID should match this
+	Data string `xml:"Data"` //base64 encoded PNG icon.  Unknown size constraints
+}
+
 func WithMetaDataFormattedTime(formatted bool) MetaDataOption {
 	return func(md *MetaData) {
 		md.MasterKeyChanged.Formatted = formatted
@@ -26,6 +32,7 @@ func NewMetaData(options ...MetaDataOption) *MetaData {
 	now := w.Now()
 
 	md := &MetaData{
+		SettingsChanged:        &now,
 		MasterKeyChanged:       &now,
 		MasterKeyChangeRec:     -1,
 		MasterKeyChangeForce:   -1,
@@ -45,7 +52,8 @@ func NewMetaData(options ...MetaDataOption) *MetaData {
 // it contains things like the name of the database
 type MetaData struct {
 	Generator                  string         `xml:"Generator"`
-	HeaderHash                 string         `xml:"HeaderHash"`
+	SettingsChanged            *w.TimeWrapper `xml:"SettingsChanged"`
+	HeaderHash                 string         `xml:"HeaderHash,omitempty"`
 	DatabaseName               string         `xml:"DatabaseName"`
 	DatabaseNameChanged        *w.TimeWrapper `xml:"DatabaseNameChanged"`
 	DatabaseDescription        string         `xml:"DatabaseDescription"`
@@ -58,6 +66,7 @@ type MetaData struct {
 	MasterKeyChangeRec         int64          `xml:"MasterKeyChangeRec"`
 	MasterKeyChangeForce       int64          `xml:"MasterKeyChangeForce"`
 	MemoryProtection           MemProtection  `xml:"MemoryProtection"`
+	CustomIcons                []CustomIcon   `xml:"CustomIcons>Icon"`
 	RecycleBinEnabled          w.BoolWrapper  `xml:"RecycleBinEnabled"`
 	RecycleBinUUID             UUID           `xml:"RecycleBinUUID"`
 	RecycleBinChanged          *w.TimeWrapper `xml:"RecycleBinChanged"`
@@ -67,11 +76,14 @@ type MetaData struct {
 	HistoryMaxSize             int64          `xml:"HistoryMaxSize"`
 	LastSelectedGroup          string         `xml:"LastSelectedGroup"`
 	LastTopVisibleGroup        string         `xml:"LastTopVisibleGroup"`
-	Binaries                   Binaries       `xml:"Binaries>Binary"`
+	Binaries                   Binaries       `xml:"Binaries>Binary,omitempty"`
 	CustomData                 []CustomData   `xml:"CustomData>Item"`
 }
 
 func (md *MetaData) setKdbxFormatVersion(version formatVersion) {
+	if md.SettingsChanged != nil {
+		md.SettingsChanged.Formatted = !isKdbx4(version)
+	}
 	if md.DatabaseNameChanged != nil {
 		md.DatabaseNameChanged.Formatted = !isKdbx4(version)
 	}

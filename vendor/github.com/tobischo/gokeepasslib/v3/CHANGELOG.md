@@ -1,6 +1,20 @@
+### v3.2.0
+
+* Add support for custom icons
+
+### v3.1.0
+
+* Add initialization support for KDBXv4 files
+* Add SettingsChanged MetaData field
+
+### v3.0.5
+
+* Improve time marshalling/unmarshalling performance
+
 ### v3.0.4
 
 * Ensure time values are formatted according to the version when encoding the DB to file
+* Split up code into several smaller files
 
 ### v3.0.3
 

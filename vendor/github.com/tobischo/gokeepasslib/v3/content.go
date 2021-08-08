@@ -2,6 +2,7 @@ package gokeepasslib
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/binary"
 	"encoding/xml"
 	"errors"
@@ -48,6 +49,16 @@ func WithDBContentFormattedTime(formatted bool) DBContentOption {
 	}
 }
 
+func withDBContentKDBX4InnerHeader(content *DBContent) {
+	innerRandomStreamKey := make([]byte, 64)
+	rand.Read(innerRandomStreamKey)
+
+	content.InnerHeader = &InnerHeader{
+		InnerRandomStreamID:  ChaChaStreamID,
+		InnerRandomStreamKey: innerRandomStreamKey,
+	}
+}
+
 // NewContent creates a new database content with some good defaults
 func NewContent(options ...DBContentOption) *DBContent {
 	// Not necessary create InnerHeader because this will be a KDBX v3.1
@@ -66,6 +77,7 @@ func NewContent(options ...DBContentOption) *DBContent {
 // readFrom reads the InnerHeader from an io.Reader
 func (ih *InnerHeader) readFrom(r io.Reader) error {
 	binaryCount := 0 // Var used to count and index every binary
+ForLoop:
 	for {
 		var headerType byte
 		var length int32
@@ -82,16 +94,17 @@ func (ih *InnerHeader) readFrom(r io.Reader) error {
 			return err
 		}
 
-		if headerType == InnerHeaderTerminator {
+		switch headerType {
+		case InnerHeaderTerminator:
 			// End of inner header
-			break
-		} else if headerType == InnerHeaderIRSID {
+			break ForLoop
+		case InnerHeaderIRSID:
 			// Found InnerRandomStream ID
 			ih.InnerRandomStreamID = binary.LittleEndian.Uint32(data)
-		} else if headerType == InnerHeaderIRSKey {
+		case InnerHeaderIRSKey:
 			// Found InnerRandomStream Key
 			ih.InnerRandomStreamKey = data
-		} else if headerType == InnerHeaderBinary {
+		case InnerHeaderBinary:
 			// Found a binary
 			var protection byte
 			reader := bytes.NewReader(data)
@@ -106,7 +119,7 @@ func (ih *InnerHeader) readFrom(r io.Reader) error {
 			})
 
 			binaryCount = binaryCount + 1
-		} else {
+		default:
 			return ErrUnknownInnerHeaderID(headerType)
 		}
 	}
@@ -172,6 +185,6 @@ var ErrEndOfInnerHeaders = errors.New("gokeepasslib: inner header id was 0, end 
 // ErrUnknownInnerHeaderID is the error returned if an unknown inner header is read
 type ErrUnknownInnerHeaderID byte
 
-func (i ErrUnknownInnerHeaderID) Error() string {
-	return fmt.Sprintf("gokeepasslib: unknown inner header ID of %x", i)
+func (e ErrUnknownInnerHeaderID) Error() string {
+	return fmt.Sprintf("gokeepasslib: unknown inner header ID of %d", int(e))
 }

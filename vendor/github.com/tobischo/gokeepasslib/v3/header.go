@@ -18,8 +18,14 @@ var BaseSignature = [...]byte{0x03, 0xd9, 0xa2, 0x9a}
 // SecondarySignature is the valid version signature for kdbx files
 var SecondarySignature = [...]byte{0x67, 0xfb, 0x4b, 0xb5}
 
+// DefaultKDBX3Sig is the full valid default signature struct for new databases (Kdbx v3.1)
+var DefaultKDBX3Sig = Signature{BaseSignature, SecondarySignature, 1, 3}
+
+// DefaultKDBX4Sig is the full valid default signature struct for new databases (Kdbx v4.0)
+var DefaultKDBX4Sig = Signature{BaseSignature, SecondarySignature, 0, 4}
+
 // DefaultSig is the full valid default signature struct for new databases (Kdbx v3.1)
-var DefaultSig = Signature{BaseSignature, SecondarySignature, 1, 3}
+var DefaultSig = DefaultKDBX3Sig
 
 // Compression flags
 const (
@@ -110,14 +116,32 @@ type VariantDictionaryItem struct {
 
 // NewHeader creates a new Header with good defaults
 func NewHeader() *DBHeader {
+	return NewKDBX3Header()
+}
+
+// NewKDBX3Header creates a new Header with good defaults for KDBX3
+func NewKDBX3Header() *DBHeader {
 	return &DBHeader{
-		Signature:   &DefaultSig,
-		FileHeaders: NewFileHeaders(),
+		Signature:   &DefaultKDBX3Sig,
+		FileHeaders: NewKDBX3FileHeaders(),
+	}
+}
+
+// NewKDBX4Header creates a new Header with good defaults for KDBX4
+func NewKDBX4Header() *DBHeader {
+	return &DBHeader{
+		Signature:   &DefaultKDBX4Sig,
+		FileHeaders: NewKDBX4FileHeaders(),
 	}
 }
 
 // NewFileHeaders creates a new FileHeaders with good defaults
 func NewFileHeaders() *FileHeaders {
+	return NewKDBX3FileHeaders()
+}
+
+// NewKDBX3FileHeaders creates a new FileHeaders with good defaults for KDBX3
+func NewKDBX3FileHeaders() *FileHeaders {
 	masterSeed := make([]byte, 32)
 	rand.Read(masterSeed)
 
@@ -143,6 +167,34 @@ func NewFileHeaders() *FileHeaders {
 		ProtectedStreamKey:  protectedStreamKey,
 		StreamStartBytes:    streamStartBytes,
 		InnerRandomStreamID: SalsaStreamID,
+	}
+}
+
+// NewKDBX4FileHeaders creates a new FileHeaders with good defaults for KDBX4
+func NewKDBX4FileHeaders() *FileHeaders {
+	masterSeed := make([]byte, 32)
+	rand.Read(masterSeed)
+
+	encryptionIV := make([]byte, 12)
+	rand.Read(encryptionIV)
+
+	var salt [32]byte
+	rand.Read(salt[:])
+
+	return &FileHeaders{
+		CipherID:         CipherChaCha20,
+		CompressionFlags: GzipCompressionFlag,
+		MasterSeed:       masterSeed,
+		EncryptionIV:     encryptionIV,
+		KdfParameters: &KdfParameters{
+			UUID:        KdfArgon2,
+			Rounds:      0,
+			Salt:        salt,
+			Parallelism: 2,
+			Memory:      1048576,
+			Iterations:  2,
+			Version:     19,
+		},
 	}
 }
 
@@ -293,6 +345,126 @@ func (k *KdfParameters) readKdfParameters(data []byte) error {
 	return nil
 }
 
+const (
+	variantDictionaryTypeUInt32 = 0x4
+	variantDictionaryTypeUInt64 = 0x5
+	variantDictionaryTypeFlag   = 0x08
+	variantDictionaryTypeInt32  = 0x0C
+	variantDictionaryTypeInt64  = 0x0D
+	variantDictionaryTypeString = 0x18
+	variantDictionaryTypeBinary = 0x42
+)
+
+// updateRawData converts the kdf parameters into rawdata again
+func (k *KdfParameters) updateRawData() error {
+	dict := new(VariantDictionary)
+	dict.Version = 256
+	dict.Items = make([]*VariantDictionaryItem, 0, 9)
+
+	if len(k.UUID) > 0 {
+		uuidItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeBinary,
+			Name:  []byte("$UUID"),
+			Value: k.UUID,
+		}
+		dict.Items = append(dict.Items, uuidItem)
+	}
+
+	if k.Rounds > 0 {
+		roundsItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeUInt64,
+			Name:  []byte("R"),
+			Value: make([]byte, 8),
+		}
+		binary.LittleEndian.PutUint64(roundsItem.Value, k.Rounds)
+		dict.Items = append(dict.Items, roundsItem)
+	}
+
+	if k.Version > 0 {
+		versionItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeUInt32,
+			Name:  []byte("V"),
+			Value: make([]byte, 4),
+		}
+		binary.LittleEndian.PutUint32(versionItem.Value, k.Version)
+		dict.Items = append(dict.Items, versionItem)
+	}
+
+	if k.Iterations > 0 {
+		iterationsItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeUInt64,
+			Name:  []byte("I"),
+			Value: make([]byte, 8),
+		}
+		binary.LittleEndian.PutUint64(iterationsItem.Value, k.Iterations)
+		dict.Items = append(dict.Items, iterationsItem)
+	}
+
+	if k.Memory > 0 {
+		memoryItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeUInt64,
+			Name:  []byte("M"),
+			Value: make([]byte, 8),
+		}
+		binary.LittleEndian.PutUint64(memoryItem.Value, k.Memory)
+		dict.Items = append(dict.Items, memoryItem)
+	}
+
+	if k.Parallelism > 0 {
+		parallelismItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeUInt32,
+			Name:  []byte("P"),
+			Value: make([]byte, 4),
+		}
+		binary.LittleEndian.PutUint32(parallelismItem.Value, k.Parallelism)
+		dict.Items = append(dict.Items, parallelismItem)
+	}
+
+	if len(k.Salt) > 0 {
+		saltItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeBinary,
+			Name:  []byte("S"),
+			Value: make([]byte, 32),
+		}
+		copy(saltItem.Value[:32], k.Salt[:])
+		dict.Items = append(dict.Items, saltItem)
+	}
+
+	if len(k.SecretKey) > 0 {
+		secretKeyItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeBinary,
+			Name:  []byte("K"),
+			Value: k.SecretKey,
+		}
+		dict.Items = append(dict.Items, secretKeyItem)
+	}
+
+	if len(k.AssocData) > 0 {
+		assocDataItem := &VariantDictionaryItem{
+			Type:  variantDictionaryTypeBinary,
+			Name:  []byte("K"),
+			Value: k.AssocData,
+		}
+		dict.Items = append(dict.Items, assocDataItem)
+	}
+
+	// Set NameLength, ValueLength and writes data to the result
+	i := 0
+	for _, item := range dict.Items {
+		item.NameLength = int32(len(item.Name))
+		item.ValueLength = int32(len(item.Value))
+
+		if item.ValueLength > 0 {
+			dict.Items[i] = item
+			i++
+		}
+	}
+
+	k.RawData = dict
+
+	return nil
+}
+
 // readVariantDictionary reads a variant dictionary
 func (vd *VariantDictionary) readVariantDictionary(data []byte) error {
 	r := bytes.NewReader(data)
@@ -370,6 +542,7 @@ func (fh FileHeaders) writeTo4(w io.Writer, buf *bytes.Buffer) error {
 	if err := writeTo4Header(w, 7, fh.EncryptionIV); err != nil {
 		return err
 	}
+	fh.KdfParameters.updateRawData()
 	if err := writeTo4VariantDictionary(w, 11, fh.KdfParameters.RawData); err != nil {
 		return err
 	}
@@ -403,6 +576,7 @@ func writeTo4VariantDictionary(w io.Writer, id uint8, data *VariantDictionary) e
 		if err := binary.Write(&buffer, binary.LittleEndian, data.Version); err != nil {
 			return err
 		}
+
 		for _, item := range data.Items {
 			if err := binary.Write(&buffer, binary.LittleEndian, item.Type); err != nil {
 				return err
@@ -603,7 +777,7 @@ func (fh FileHeaders) String() string {
 func (k *KdfParameters) String() string {
 	return fmt.Sprintf(
 		"  (1) UUID: %x\n"+
-			"  (2) Rounds: %x\n"+
+			"  (2) Rounds: %d\n"+
 			"  (3) Salt: %x\n"+
 			"  (4) Parallelism: %d\n"+
 			"  (5) Memory: %d\n"+
@@ -671,6 +845,6 @@ func (i ErrUnknownHeaderID) Error() string {
 // ErrUnknownParameterID is the error returned if an unknown kdf parameter is read
 type ErrUnknownParameterID string
 
-func (i ErrUnknownParameterID) Error() string {
-	return fmt.Sprintf("gokeepasslib: unknown kdf parameter '%s'", i)
+func (s ErrUnknownParameterID) Error() string {
+	return fmt.Sprintf("gokeepasslib: unknown kdf parameter '%s'", string(s))
 }
