@@ -34,7 +34,15 @@ func listEntries(g *gokeepasslib.Group) []string {
 	return entries
 }
 
-func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, error) {
+func readEntry(selection string, g *gokeepasslib.Group) (*gokeepasslib.Entry, error) {
+	for i, entry := range g.Entries {
+		if entry.GetTitle() == selection {
+			return &g.Entries[i], nil
+		}
+	}
+
+	selectors := strings.Split(selection, "/")
+
 	if len(selectors) == 1 {
 		for i, entry := range g.Entries {
 			if entry.GetTitle() == selectors[0] {
@@ -44,7 +52,7 @@ func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, 
 	} else {
 		for i, group := range g.Groups {
 			if group.Name == selectors[0] {
-				return readEntry(selectors[1:], &g.Groups[i])
+				return readEntry(strings.Join(selectors[1:], "/"), &g.Groups[i])
 			}
 		}
 	}
@@ -68,9 +76,7 @@ func readEntry(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Entry, 
 		return nil, err
 	}
 
-	return readEntry(strings.Split(entries[index], "/"), g)
-
-	return nil, fmt.Errorf("Failed to locate entry at selector")
+	return readEntry(entries[index], g)
 }
 
 func searchEntries(selectors []string, g *gokeepasslib.Group) []string {
