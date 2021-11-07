@@ -1,3 +1,22 @@
+### v3.2.4
+
+* Add support for handling protected value unlocking with `Entry` or `Group` being loaded first from XML
+* Initialize fresh UUIDs on unmarshal in case they are missing
+
+### v3.2.3
+
+* Adds `(*Binary).GetContentString() (string, error)` and `(*Binary).GetContentBytes() ([]byte, error)` funcs
+* Deprecates `(*Binary).GetContent() (string, error)`
+* Also adds `CustomIcon` support on `Group` level
+
+### v3.2.2
+
+* Correctly support multiple Window Associations in an entry's AutoType data
+
+### v3.2.1
+
+* Add missing DefaultSequence in AutoType data
+
 ### v3.2.0
 
 * Add support for custom icons
