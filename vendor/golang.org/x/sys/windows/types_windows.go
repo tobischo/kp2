@@ -144,6 +144,8 @@ const (
 	MAX_PATH      = 260
 	MAX_LONG_PATH = 32768
 
+	MAX_MODULE_NAME32 = 255
+
 	MAX_COMPUTERNAME_LENGTH = 15
 
 	TIME_ZONE_ID_UNKNOWN  = 0
@@ -916,8 +918,8 @@ type StartupInfoEx struct {
 type ProcThreadAttributeList struct{}
 
 type ProcThreadAttributeListContainer struct {
-	data            *ProcThreadAttributeList
-	heapAllocations []uintptr
+	data     *ProcThreadAttributeList
+	pointers []unsafe.Pointer
 }
 
 type ProcessInformation struct {
@@ -949,6 +951,21 @@ type ThreadEntry32 struct {
 	DeltaPri       int32
 	Flags          uint32
 }
+
+type ModuleEntry32 struct {
+	Size         uint32
+	ModuleID     uint32
+	ProcessID    uint32
+	GlblcntUsage uint32
+	ProccntUsage uint32
+	ModBaseAddr  uintptr
+	ModBaseSize  uint32
+	ModuleHandle Handle
+	Module       [MAX_MODULE_NAME32 + 1]uint16
+	ExePath      [MAX_PATH]uint16
+}
+
+const SizeofModuleEntry32 = unsafe.Sizeof(ModuleEntry32{})
 
 type Systemtime struct {
 	Year         uint16
@@ -2606,6 +2623,243 @@ type PROCESS_BASIC_INFORMATION struct {
 	InheritedFromUniqueProcessId uintptr
 }
 
+<<<<<<< HEAD
+=======
+type SYSTEM_PROCESS_INFORMATION struct {
+	NextEntryOffset              uint32
+	NumberOfThreads              uint32
+	WorkingSetPrivateSize        int64
+	HardFaultCount               uint32
+	NumberOfThreadsHighWatermark uint32
+	CycleTime                    uint64
+	CreateTime                   int64
+	UserTime                     int64
+	KernelTime                   int64
+	ImageName                    NTUnicodeString
+	BasePriority                 int32
+	UniqueProcessID              uintptr
+	InheritedFromUniqueProcessID uintptr
+	HandleCount                  uint32
+	SessionID                    uint32
+	UniqueProcessKey             *uint32
+	PeakVirtualSize              uintptr
+	VirtualSize                  uintptr
+	PageFaultCount               uint32
+	PeakWorkingSetSize           uintptr
+	WorkingSetSize               uintptr
+	QuotaPeakPagedPoolUsage      uintptr
+	QuotaPagedPoolUsage          uintptr
+	QuotaPeakNonPagedPoolUsage   uintptr
+	QuotaNonPagedPoolUsage       uintptr
+	PagefileUsage                uintptr
+	PeakPagefileUsage            uintptr
+	PrivatePageCount             uintptr
+	ReadOperationCount           int64
+	WriteOperationCount          int64
+	OtherOperationCount          int64
+	ReadTransferCount            int64
+	WriteTransferCount           int64
+	OtherTransferCount           int64
+}
+
+// SystemInformationClasses for NtQuerySystemInformation and NtSetSystemInformation
+const (
+	SystemBasicInformation = iota
+	SystemProcessorInformation
+	SystemPerformanceInformation
+	SystemTimeOfDayInformation
+	SystemPathInformation
+	SystemProcessInformation
+	SystemCallCountInformation
+	SystemDeviceInformation
+	SystemProcessorPerformanceInformation
+	SystemFlagsInformation
+	SystemCallTimeInformation
+	SystemModuleInformation
+	SystemLocksInformation
+	SystemStackTraceInformation
+	SystemPagedPoolInformation
+	SystemNonPagedPoolInformation
+	SystemHandleInformation
+	SystemObjectInformation
+	SystemPageFileInformation
+	SystemVdmInstemulInformation
+	SystemVdmBopInformation
+	SystemFileCacheInformation
+	SystemPoolTagInformation
+	SystemInterruptInformation
+	SystemDpcBehaviorInformation
+	SystemFullMemoryInformation
+	SystemLoadGdiDriverInformation
+	SystemUnloadGdiDriverInformation
+	SystemTimeAdjustmentInformation
+	SystemSummaryMemoryInformation
+	SystemMirrorMemoryInformation
+	SystemPerformanceTraceInformation
+	systemObsolete0
+	SystemExceptionInformation
+	SystemCrashDumpStateInformation
+	SystemKernelDebuggerInformation
+	SystemContextSwitchInformation
+	SystemRegistryQuotaInformation
+	SystemExtendServiceTableInformation
+	SystemPrioritySeperation
+	SystemVerifierAddDriverInformation
+	SystemVerifierRemoveDriverInformation
+	SystemProcessorIdleInformation
+	SystemLegacyDriverInformation
+	SystemCurrentTimeZoneInformation
+	SystemLookasideInformation
+	SystemTimeSlipNotification
+	SystemSessionCreate
+	SystemSessionDetach
+	SystemSessionInformation
+	SystemRangeStartInformation
+	SystemVerifierInformation
+	SystemVerifierThunkExtend
+	SystemSessionProcessInformation
+	SystemLoadGdiDriverInSystemSpace
+	SystemNumaProcessorMap
+	SystemPrefetcherInformation
+	SystemExtendedProcessInformation
+	SystemRecommendedSharedDataAlignment
+	SystemComPlusPackage
+	SystemNumaAvailableMemory
+	SystemProcessorPowerInformation
+	SystemEmulationBasicInformation
+	SystemEmulationProcessorInformation
+	SystemExtendedHandleInformation
+	SystemLostDelayedWriteInformation
+	SystemBigPoolInformation
+	SystemSessionPoolTagInformation
+	SystemSessionMappedViewInformation
+	SystemHotpatchInformation
+	SystemObjectSecurityMode
+	SystemWatchdogTimerHandler
+	SystemWatchdogTimerInformation
+	SystemLogicalProcessorInformation
+	SystemWow64SharedInformationObsolete
+	SystemRegisterFirmwareTableInformationHandler
+	SystemFirmwareTableInformation
+	SystemModuleInformationEx
+	SystemVerifierTriageInformation
+	SystemSuperfetchInformation
+	SystemMemoryListInformation
+	SystemFileCacheInformationEx
+	SystemThreadPriorityClientIdInformation
+	SystemProcessorIdleCycleTimeInformation
+	SystemVerifierCancellationInformation
+	SystemProcessorPowerInformationEx
+	SystemRefTraceInformation
+	SystemSpecialPoolInformation
+	SystemProcessIdInformation
+	SystemErrorPortInformation
+	SystemBootEnvironmentInformation
+	SystemHypervisorInformation
+	SystemVerifierInformationEx
+	SystemTimeZoneInformation
+	SystemImageFileExecutionOptionsInformation
+	SystemCoverageInformation
+	SystemPrefetchPatchInformation
+	SystemVerifierFaultsInformation
+	SystemSystemPartitionInformation
+	SystemSystemDiskInformation
+	SystemProcessorPerformanceDistribution
+	SystemNumaProximityNodeInformation
+	SystemDynamicTimeZoneInformation
+	SystemCodeIntegrityInformation
+	SystemProcessorMicrocodeUpdateInformation
+	SystemProcessorBrandString
+	SystemVirtualAddressInformation
+	SystemLogicalProcessorAndGroupInformation
+	SystemProcessorCycleTimeInformation
+	SystemStoreInformation
+	SystemRegistryAppendString
+	SystemAitSamplingValue
+	SystemVhdBootInformation
+	SystemCpuQuotaInformation
+	SystemNativeBasicInformation
+	systemSpare1
+	SystemLowPriorityIoInformation
+	SystemTpmBootEntropyInformation
+	SystemVerifierCountersInformation
+	SystemPagedPoolInformationEx
+	SystemSystemPtesInformationEx
+	SystemNodeDistanceInformation
+	SystemAcpiAuditInformation
+	SystemBasicPerformanceInformation
+	SystemQueryPerformanceCounterInformation
+	SystemSessionBigPoolInformation
+	SystemBootGraphicsInformation
+	SystemScrubPhysicalMemoryInformation
+	SystemBadPageInformation
+	SystemProcessorProfileControlArea
+	SystemCombinePhysicalMemoryInformation
+	SystemEntropyInterruptTimingCallback
+	SystemConsoleInformation
+	SystemPlatformBinaryInformation
+	SystemThrottleNotificationInformation
+	SystemHypervisorProcessorCountInformation
+	SystemDeviceDataInformation
+	SystemDeviceDataEnumerationInformation
+	SystemMemoryTopologyInformation
+	SystemMemoryChannelInformation
+	SystemBootLogoInformation
+	SystemProcessorPerformanceInformationEx
+	systemSpare0
+	SystemSecureBootPolicyInformation
+	SystemPageFileInformationEx
+	SystemSecureBootInformation
+	SystemEntropyInterruptTimingRawInformation
+	SystemPortableWorkspaceEfiLauncherInformation
+	SystemFullProcessInformation
+	SystemKernelDebuggerInformationEx
+	SystemBootMetadataInformation
+	SystemSoftRebootInformation
+	SystemElamCertificateInformation
+	SystemOfflineDumpConfigInformation
+	SystemProcessorFeaturesInformation
+	SystemRegistryReconciliationInformation
+	SystemEdidInformation
+	SystemManufacturingInformation
+	SystemEnergyEstimationConfigInformation
+	SystemHypervisorDetailInformation
+	SystemProcessorCycleStatsInformation
+	SystemVmGenerationCountInformation
+	SystemTrustedPlatformModuleInformation
+	SystemKernelDebuggerFlags
+	SystemCodeIntegrityPolicyInformation
+	SystemIsolatedUserModeInformation
+	SystemHardwareSecurityTestInterfaceResultsInformation
+	SystemSingleModuleInformation
+	SystemAllowedCpuSetsInformation
+	SystemDmaProtectionInformation
+	SystemInterruptCpuSetsInformation
+	SystemSecureBootPolicyFullInformation
+	SystemCodeIntegrityPolicyFullInformation
+	SystemAffinitizedInterruptProcessorInformation
+	SystemRootSiloInformation
+)
+
+type RTL_PROCESS_MODULE_INFORMATION struct {
+	Section          Handle
+	MappedBase       uintptr
+	ImageBase        uintptr
+	ImageSize        uint32
+	Flags            uint32
+	LoadOrderIndex   uint16
+	InitOrderIndex   uint16
+	LoadCount        uint16
+	OffsetToFileName uint16
+	FullPathName     [256]byte
+}
+
+type RTL_PROCESS_MODULES struct {
+	NumberOfModules uint32
+	Modules         [1]RTL_PROCESS_MODULE_INFORMATION
+}
+
+>>>>>>> 7832bb4 (Update dependencies)
 // Constants for LocalAlloc flags.
 const (
 	LMEM_FIXED          = 0x0
@@ -2773,3 +3027,14 @@ const (
 
 // Flag for QueryFullProcessImageName.
 const PROCESS_NAME_NATIVE = 1
+<<<<<<< HEAD
+=======
+
+type ModuleInfo struct {
+	BaseOfDll   uintptr
+	SizeOfImage uint32
+	EntryPoint  uintptr
+}
+
+const ALL_PROCESSOR_GROUPS = 0xFFFF
+>>>>>>> 7832bb4 (Update dependencies)

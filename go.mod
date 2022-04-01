@@ -3,10 +3,10 @@ module github.com/tobischo/kp2
 go 1.14
 
 require (
-	github.com/atotto/clipboard v0.1.2
-	github.com/spf13/cobra v1.0.0
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tobischo/gokeepasslib/v3 v3.2.0
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
-	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
+	github.com/atotto/clipboard v0.1.4
+	github.com/spf13/cobra v1.4.0
+	github.com/tobischo/gokeepasslib/v3 v3.2.4
+	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
+	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 )

@@ -185,3 +185,47 @@ func IoctlHIDGetRawUniq(fd int) (string, error) {
 	err := ioctl(fd, _HIDIOCGRAWUNIQ, uintptr(unsafe.Pointer(&value[0])))
 	return ByteSliceToString(value[:]), err
 }
+<<<<<<< HEAD
+=======
+
+// IoctlIfreq performs an ioctl using an Ifreq structure for input and/or
+// output. See the netdevice(7) man page for details.
+func IoctlIfreq(fd int, req uint, value *Ifreq) error {
+	// It is possible we will add more fields to *Ifreq itself later to prevent
+	// misuse, so pass the raw *ifreq directly.
+	return ioctlPtr(fd, req, unsafe.Pointer(&value.raw))
+}
+
+// TODO(mdlayher): export if and when IfreqData is exported.
+
+// ioctlIfreqData performs an ioctl using an ifreqData structure for input
+// and/or output. See the netdevice(7) man page for details.
+func ioctlIfreqData(fd int, req uint, value *ifreqData) error {
+	// The memory layout of IfreqData (type-safe) and ifreq (not type-safe) are
+	// identical so pass *IfreqData directly.
+	return ioctlPtr(fd, req, unsafe.Pointer(value))
+}
+
+// IoctlKCMClone attaches a new file descriptor to a multiplexor by cloning an
+// existing KCM socket, returning a structure containing the file descriptor of
+// the new socket.
+func IoctlKCMClone(fd int) (*KCMClone, error) {
+	var info KCMClone
+	if err := ioctlPtr(fd, SIOCKCMCLONE, unsafe.Pointer(&info)); err != nil {
+		return nil, err
+	}
+
+	return &info, nil
+}
+
+// IoctlKCMAttach attaches a TCP socket and associated BPF program file
+// descriptor to a multiplexor.
+func IoctlKCMAttach(fd int, info KCMAttach) error {
+	return ioctlPtr(fd, SIOCKCMATTACH, unsafe.Pointer(&info))
+}
+
+// IoctlKCMUnattach unattaches a TCP socket file descriptor from a multiplexor.
+func IoctlKCMUnattach(fd int, info KCMUnattach) error {
+	return ioctlPtr(fd, SIOCKCMUNATTACH, unsafe.Pointer(&info))
+}
+>>>>>>> 7832bb4 (Update dependencies)
