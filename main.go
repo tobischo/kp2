@@ -30,17 +30,8 @@ func main() {
 	// }
 	// cmdAdd.Flags().BoolVarP(&groupFlag, "group", "g", false, "if set to true adds a group instead of an entry")
 
-	// var cmdBrowse = &cobra.Command{
-	// 	Use:   "browse",
-	// 	Short: "interactive browsing mode",
-	// 	Long:  "browse is for interactively browsing the Keepass2 file",
-	// 	Run: func(cmd *cobra.Command, args []string) {
-	// 		fmt.Println("browse")
-	// 	},
-	// }
-
 	var cmdBrowse = &cobra.Command{
-		Use:     "interactive",
+		Use:     "browse",
 		Short:   "allows interactive access to the database",
 		Long:    `interactive allows to execute multiple operations on the file`,
 		PreRunE: loadDatabaseCmd,
