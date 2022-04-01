@@ -457,6 +457,11 @@ type CanFilter struct {
 	Mask uint32
 }
 
+type TCPRepairOpt struct {
+	Code uint32
+	Val  uint32
+}
+
 const (
 	SizeofSockaddrInet4     = 0x10
 	SizeofSockaddrInet6     = 0x1c
@@ -489,6 +494,7 @@ const (
 	SizeofUcred             = 0xc
 	SizeofTCPInfo           = 0x68
 	SizeofCanFilter         = 0x8
+	SizeofTCPRepairOpt      = 0x8
 )
 
 const (
@@ -685,6 +691,16 @@ type NdMsg struct {
 	Flags   uint8
 	Type    uint8
 }
+
+const (
+	ICMP_FILTER = 0x1
+
+	ICMPV6_FILTER             = 0x1
+	ICMPV6_FILTER_BLOCK       = 0x1
+	ICMPV6_FILTER_BLOCKOTHERS = 0x3
+	ICMPV6_FILTER_PASS        = 0x2
+	ICMPV6_FILTER_PASSONLY    = 0x4
+)
 
 const (
 	SizeofSockFilter = 0x8
@@ -1016,7 +1032,7 @@ const (
 	PERF_COUNT_SW_EMULATION_FAULTS        = 0x8
 	PERF_COUNT_SW_DUMMY                   = 0x9
 	PERF_COUNT_SW_BPF_OUTPUT              = 0xa
-	PERF_COUNT_SW_MAX                     = 0xb
+	PERF_COUNT_SW_MAX                     = 0xc
 	PERF_SAMPLE_IP                        = 0x1
 	PERF_SAMPLE_TID                       = 0x2
 	PERF_SAMPLE_TIME                      = 0x4
@@ -2357,8 +2373,8 @@ const (
 	SOF_TIMESTAMPING_OPT_PKTINFO  = 0x2000
 	SOF_TIMESTAMPING_OPT_TX_SWHW  = 0x4000
 
-	SOF_TIMESTAMPING_LAST = 0x4000
-	SOF_TIMESTAMPING_MASK = 0x7fff
+	SOF_TIMESTAMPING_LAST = 0x8000
+	SOF_TIMESTAMPING_MASK = 0xffff
 
 	SCM_TSTAMP_SND   = 0x0
 	SCM_TSTAMP_SCHED = 0x1
@@ -2934,7 +2950,7 @@ const (
 	DEVLINK_CMD_TRAP_POLICER_NEW                       = 0x47
 	DEVLINK_CMD_TRAP_POLICER_DEL                       = 0x48
 	DEVLINK_CMD_HEALTH_REPORTER_TEST                   = 0x49
-	DEVLINK_CMD_MAX                                    = 0x49
+	DEVLINK_CMD_MAX                                    = 0x4d
 	DEVLINK_PORT_TYPE_NOTSET                           = 0x0
 	DEVLINK_PORT_TYPE_AUTO                             = 0x1
 	DEVLINK_PORT_TYPE_ETH                              = 0x2
@@ -3157,9 +3173,6 @@ const (
 	DEVLINK_ATTR_RELOAD_ACTION_INFO                    = 0xa2
 	DEVLINK_ATTR_RELOAD_ACTION_STATS                   = 0xa3
 	DEVLINK_ATTR_PORT_PCI_SF_NUMBER                    = 0xa4
-<<<<<<< HEAD
-	DEVLINK_ATTR_MAX                                   = 0xa4
-=======
 	DEVLINK_ATTR_RATE_TYPE                             = 0xa5
 	DEVLINK_ATTR_RATE_TX_SHARE                         = 0xa6
 	DEVLINK_ATTR_RATE_TX_MAX                           = 0xa7
@@ -3167,7 +3180,6 @@ const (
 	DEVLINK_ATTR_RATE_PARENT_NODE_NAME                 = 0xa9
 	DEVLINK_ATTR_REGION_MAX_SNAPSHOTS                  = 0xaa
 	DEVLINK_ATTR_MAX                                   = 0xaa
->>>>>>> 7832bb4 (Update dependencies)
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_NONE              = 0x0
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_IFINDEX           = 0x1
 	DEVLINK_DPIPE_MATCH_TYPE_FIELD_EXACT               = 0x0
@@ -3275,7 +3287,8 @@ const (
 	LWTUNNEL_ENCAP_BPF        = 0x6
 	LWTUNNEL_ENCAP_SEG6_LOCAL = 0x7
 	LWTUNNEL_ENCAP_RPL        = 0x8
-	LWTUNNEL_ENCAP_MAX        = 0x8
+	LWTUNNEL_ENCAP_IOAM6      = 0x9
+	LWTUNNEL_ENCAP_MAX        = 0x9
 
 	MPLS_IPTUNNEL_UNSPEC = 0x0
 	MPLS_IPTUNNEL_DST    = 0x1
@@ -3463,9 +3476,6 @@ const (
 	ETHTOOL_MSG_CABLE_TEST_ACT                = 0x1a
 	ETHTOOL_MSG_CABLE_TEST_TDR_ACT            = 0x1b
 	ETHTOOL_MSG_TUNNEL_INFO_GET               = 0x1c
-<<<<<<< HEAD
-	ETHTOOL_MSG_USER_MAX                      = 0x1c
-=======
 	ETHTOOL_MSG_FEC_GET                       = 0x1d
 	ETHTOOL_MSG_FEC_SET                       = 0x1e
 	ETHTOOL_MSG_MODULE_EEPROM_GET             = 0x1f
@@ -3474,7 +3484,6 @@ const (
 	ETHTOOL_MSG_MODULE_GET                    = 0x22
 	ETHTOOL_MSG_MODULE_SET                    = 0x23
 	ETHTOOL_MSG_USER_MAX                      = 0x23
->>>>>>> 7832bb4 (Update dependencies)
 	ETHTOOL_MSG_KERNEL_NONE                   = 0x0
 	ETHTOOL_MSG_STRSET_GET_REPLY              = 0x1
 	ETHTOOL_MSG_LINKINFO_GET_REPLY            = 0x2
@@ -3505,9 +3514,6 @@ const (
 	ETHTOOL_MSG_CABLE_TEST_NTF                = 0x1b
 	ETHTOOL_MSG_CABLE_TEST_TDR_NTF            = 0x1c
 	ETHTOOL_MSG_TUNNEL_INFO_GET_REPLY         = 0x1d
-<<<<<<< HEAD
-	ETHTOOL_MSG_KERNEL_MAX                    = 0x1d
-=======
 	ETHTOOL_MSG_FEC_GET_REPLY                 = 0x1e
 	ETHTOOL_MSG_FEC_NTF                       = 0x1f
 	ETHTOOL_MSG_MODULE_EEPROM_GET_REPLY       = 0x20
@@ -3516,7 +3522,6 @@ const (
 	ETHTOOL_MSG_MODULE_GET_REPLY              = 0x23
 	ETHTOOL_MSG_MODULE_NTF                    = 0x24
 	ETHTOOL_MSG_KERNEL_MAX                    = 0x24
->>>>>>> 7832bb4 (Update dependencies)
 	ETHTOOL_A_HEADER_UNSPEC                   = 0x0
 	ETHTOOL_A_HEADER_DEV_INDEX                = 0x1
 	ETHTOOL_A_HEADER_DEV_NAME                 = 0x2
@@ -3650,7 +3655,9 @@ const (
 	ETHTOOL_A_COALESCE_TX_USECS_HIGH          = 0x15
 	ETHTOOL_A_COALESCE_TX_MAX_FRAMES_HIGH     = 0x16
 	ETHTOOL_A_COALESCE_RATE_SAMPLE_INTERVAL   = 0x17
-	ETHTOOL_A_COALESCE_MAX                    = 0x17
+	ETHTOOL_A_COALESCE_USE_CQE_MODE_TX        = 0x18
+	ETHTOOL_A_COALESCE_USE_CQE_MODE_RX        = 0x19
+	ETHTOOL_A_COALESCE_MAX                    = 0x19
 	ETHTOOL_A_PAUSE_UNSPEC                    = 0x0
 	ETHTOOL_A_PAUSE_HEADER                    = 0x1
 	ETHTOOL_A_PAUSE_AUTONEG                   = 0x2
@@ -3958,8 +3965,6 @@ const (
 	NFC_SDP_ATTR_URI                  = 0x1
 	NFC_SDP_ATTR_SAP                  = 0x2
 )
-<<<<<<< HEAD
-=======
 
 type LandlockRulesetAttr struct {
 	Access_fs uint64
@@ -5527,4 +5532,3 @@ const (
 	NL80211_WPA_VERSION_2                                   = 0x2
 	NL80211_WPA_VERSION_3                                   = 0x4
 )
->>>>>>> 7832bb4 (Update dependencies)

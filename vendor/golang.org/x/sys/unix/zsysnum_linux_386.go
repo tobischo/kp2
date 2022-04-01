@@ -439,8 +439,6 @@ const (
 	SYS_PROCESS_MADVISE              = 440
 	SYS_EPOLL_PWAIT2                 = 441
 	SYS_MOUNT_SETATTR                = 442
-<<<<<<< HEAD
-=======
 	SYS_QUOTACTL_FD                  = 443
 	SYS_LANDLOCK_CREATE_RULESET      = 444
 	SYS_LANDLOCK_ADD_RULE            = 445
@@ -448,5 +446,4 @@ const (
 	SYS_MEMFD_SECRET                 = 447
 	SYS_PROCESS_MRELEASE             = 448
 	SYS_FUTEX_WAITV                  = 449
->>>>>>> 7832bb4 (Update dependencies)
 )

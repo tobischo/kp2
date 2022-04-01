@@ -39,6 +39,14 @@ func main() {
 	// 	},
 	// }
 
+	var cmdBrowse = &cobra.Command{
+		Use:     "interactive",
+		Short:   "allows interactive access to the database",
+		Long:    `interactive allows to execute multiple operations on the file`,
+		PreRunE: loadDatabaseCmd,
+		RunE:    browseCmd,
+	}
+
 	var cmdCopy = &cobra.Command{
 		Use:     "copy [selector]",
 		Short:   "copies the password into the clipboard",
@@ -116,7 +124,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		// cmdAdd,
-		// cmdBrowse,
+		cmdBrowse,
 		cmdCopy,
 		cmdGeneratePassword,
 		cmdInfo,
