@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	app        = "pk2"
+	app        = "kp2"
 	timeFormat = "2006-01-02 15:04:05 -0700"
 )
 
@@ -31,11 +31,11 @@ func main() {
 	// cmdAdd.Flags().BoolVarP(&groupFlag, "group", "g", false, "if set to true adds a group instead of an entry")
 
 	var cmdBrowse = &cobra.Command{
-		Use:     "browse",
-		Short:   "allows interactive access to the database",
-		Long:    `interactive allows to execute multiple operations on the file`,
-		PreRunE: loadDatabaseCmd,
-		RunE:    browseCmd,
+		Use:   "browse",
+		Short: "allows interactive access to the database",
+		Long:  `interactive allows to execute multiple operations on the file`,
+		// PreRunE: loadDatabaseCmd,
+		RunE: browseCmd,
 	}
 
 	var cmdCopy = &cobra.Command{

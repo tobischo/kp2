@@ -6,6 +6,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
+	"github.com/tobischo/kp2/ui"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -18,7 +19,9 @@ var (
 )
 
 func browseCmd(cmd *cobra.Command, args []string) error {
-	p := tea.NewProgram(initiateModel(&db.Content.Root.Groups[0]))
+	// p := tea.NewProgram(initiateModel(&db.Content.Root.Groups[0]))
+
+	p := tea.NewProgram(ui.NewModel())
 	if err := p.Start(); err != nil {
 		return fmt.Errorf("Encountered error: %w", err)
 	}

@@ -8,9 +8,17 @@ github.com/aead/chacha20/chacha
 # github.com/atotto/clipboard v0.1.4
 ## explicit
 github.com/atotto/clipboard
+# github.com/charmbracelet/bubbles v0.10.3
+## explicit; go 1.13
+github.com/charmbracelet/bubbles/help
+github.com/charmbracelet/bubbles/key
+github.com/charmbracelet/bubbles/textinput
 # github.com/charmbracelet/bubbletea v0.22.0
 ## explicit; go 1.13
 github.com/charmbracelet/bubbletea
+# github.com/charmbracelet/lipgloss v0.5.0
+## explicit; go 1.15
+github.com/charmbracelet/lipgloss
 # github.com/containerd/console v1.0.3
 ## explicit; go 1.13
 github.com/containerd/console
@@ -37,6 +45,8 @@ github.com/muesli/cancelreader
 ## explicit; go 1.13
 github.com/muesli/reflow/ansi
 github.com/muesli/reflow/truncate
+github.com/muesli/reflow/wordwrap
+github.com/muesli/reflow/wrap
 # github.com/muesli/termenv v0.12.0
 ## explicit; go 1.13
 github.com/muesli/termenv
@@ -68,3 +78,6 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 ## explicit; go 1.17
 golang.org/x/term
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15
+gopkg.in/yaml.v2
