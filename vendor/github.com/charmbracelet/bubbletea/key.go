@@ -137,7 +137,6 @@ const (
 	keyGS  KeyType = 29  // group separator
 	keyRS  KeyType = 30  // record separator
 	keyUS  KeyType = 31  // unit separator
-	keySP  KeyType = 32  // space
 	keyDEL KeyType = 127 // delete. on most systems this is mapped to backspace, I hear
 )
 
@@ -148,7 +147,6 @@ const (
 	KeyEnter     KeyType = keyCR
 	KeyBackspace KeyType = keyDEL
 	KeyTab       KeyType = keyHT
-	KeySpace     KeyType = keySP
 	KeyEsc       KeyType = keyESC
 	KeyEscape    KeyType = keyESC
 
@@ -200,11 +198,45 @@ const (
 	KeyPgUp
 	KeyPgDown
 	KeyDelete
+	KeySpace
+	KeyCtrlUp
+	KeyCtrlDown
+	KeyCtrlRight
+	KeyCtrlLeft
+	KeyShiftUp
+	KeyShiftDown
+	KeyShiftRight
+	KeyShiftLeft
+	KeyCtrlShiftUp
+	KeyCtrlShiftDown
+	KeyCtrlShiftLeft
+	KeyCtrlShiftRight
+	KeyF1
+	KeyF2
+	KeyF3
+	KeyF4
+	KeyF5
+	KeyF6
+	KeyF7
+	KeyF8
+	KeyF9
+	KeyF10
+	KeyF11
+	KeyF12
+	KeyF13
+	KeyF14
+	KeyF15
+	KeyF16
+	KeyF17
+	KeyF18
+	KeyF19
+	KeyF20
 )
 
-// Mapping for control keys to friendly consts.
+// Mappings for control keys and other special keys to friendly consts.
 var keyNames = map[KeyType]string{
-	keyNUL: "ctrl+@", // also ctrl+`
+	// Control keys.
+	keyNUL: "ctrl+@", // also ctrl+` (that's ctrl+backtick)
 	keySOH: "ctrl+a",
 	keySTX: "ctrl+b",
 	keyETX: "ctrl+c",
@@ -236,54 +268,200 @@ var keyNames = map[KeyType]string{
 	keyGS:  "ctrl+]",
 	keyRS:  "ctrl+^",
 	keyUS:  "ctrl+_",
-	keySP:  "space",
 	keyDEL: "backspace",
 
-	KeyRunes:    "runes",
-	KeyUp:       "up",
-	KeyDown:     "down",
-	KeyRight:    "right",
-	KeyLeft:     "left",
-	KeyShiftTab: "shift+tab",
-	KeyHome:     "home",
-	KeyEnd:      "end",
-	KeyPgUp:     "pgup",
-	KeyPgDown:   "pgdown",
+	// Other keys.
+	KeyRunes:          "runes",
+	KeyUp:             "up",
+	KeyDown:           "down",
+	KeyRight:          "right",
+	KeySpace:          " ", // for backwards compatibility
+	KeyLeft:           "left",
+	KeyShiftTab:       "shift+tab",
+	KeyHome:           "home",
+	KeyEnd:            "end",
+	KeyPgUp:           "pgup",
+	KeyPgDown:         "pgdown",
+	KeyDelete:         "delete",
+	KeyCtrlUp:         "ctrl+up",
+	KeyCtrlDown:       "ctrl+down",
+	KeyCtrlRight:      "ctrl+right",
+	KeyCtrlLeft:       "ctrl+left",
+	KeyShiftUp:        "shift+up",
+	KeyShiftDown:      "shift+down",
+	KeyShiftRight:     "shift+right",
+	KeyShiftLeft:      "shift+left",
+	KeyCtrlShiftUp:    "ctrl+shift+up",
+	KeyCtrlShiftDown:  "ctrl+shift+down",
+	KeyCtrlShiftLeft:  "ctrl+shift+left",
+	KeyCtrlShiftRight: "ctrl+shift+right",
+	KeyF1:             "f1",
+	KeyF2:             "f2",
+	KeyF3:             "f3",
+	KeyF4:             "f4",
+	KeyF5:             "f5",
+	KeyF6:             "f6",
+	KeyF7:             "f7",
+	KeyF8:             "f8",
+	KeyF9:             "f9",
+	KeyF10:            "f10",
+	KeyF11:            "f11",
+	KeyF12:            "f12",
+	KeyF13:            "f13",
+	KeyF14:            "f14",
+	KeyF15:            "f15",
+	KeyF16:            "f16",
+	KeyF17:            "f17",
+	KeyF18:            "f18",
+	KeyF19:            "f19",
+	KeyF20:            "f20",
 }
 
-// Mapping for sequences to consts.
-var sequences = map[string]KeyType{
-	"\x1b[A": KeyUp,
-	"\x1b[B": KeyDown,
-	"\x1b[C": KeyRight,
-	"\x1b[D": KeyLeft,
+// Sequence mappings.
+var sequences = map[string]Key{
+	// Arrow keys
+	"\x1b[A":     {Type: KeyUp},
+	"\x1b[B":     {Type: KeyDown},
+	"\x1b[C":     {Type: KeyRight},
+	"\x1b[D":     {Type: KeyLeft},
+	"\x1b[1;2A":  {Type: KeyShiftUp},
+	"\x1b[1;2B":  {Type: KeyShiftDown},
+	"\x1b[1;2C":  {Type: KeyShiftRight},
+	"\x1b[1;2D":  {Type: KeyShiftLeft},
+	"\x1b[OA":    {Type: KeyShiftUp},    // DECCKM
+	"\x1b[OB":    {Type: KeyShiftDown},  // DECCKM
+	"\x1b[OC":    {Type: KeyShiftRight}, // DECCKM
+	"\x1b[OD":    {Type: KeyShiftLeft},  // DECCKM
+	"\x1b[a":     {Type: KeyShiftUp},    // urxvt
+	"\x1b[b":     {Type: KeyShiftDown},  // urxvt
+	"\x1b[c":     {Type: KeyShiftRight}, // urxvt
+	"\x1b[d":     {Type: KeyShiftLeft},  // urxvt
+	"\x1b[1;3A":  {Type: KeyUp, Alt: true},
+	"\x1b[1;3B":  {Type: KeyDown, Alt: true},
+	"\x1b[1;3C":  {Type: KeyRight, Alt: true},
+	"\x1b[1;3D":  {Type: KeyLeft, Alt: true},
+	"\x1b\x1b[A": {Type: KeyUp, Alt: true},    // urxvt
+	"\x1b\x1b[B": {Type: KeyDown, Alt: true},  // urxvt
+	"\x1b\x1b[C": {Type: KeyRight, Alt: true}, // urxvt
+	"\x1b\x1b[D": {Type: KeyLeft, Alt: true},  // urxvt
+	"\x1b[1;4A":  {Type: KeyShiftUp, Alt: true},
+	"\x1b[1;4B":  {Type: KeyShiftDown, Alt: true},
+	"\x1b[1;4C":  {Type: KeyShiftRight, Alt: true},
+	"\x1b[1;4D":  {Type: KeyShiftLeft, Alt: true},
+	"\x1b\x1b[a": {Type: KeyShiftUp, Alt: true},    // urxvt
+	"\x1b\x1b[b": {Type: KeyShiftDown, Alt: true},  // urxvt
+	"\x1b\x1b[c": {Type: KeyShiftRight, Alt: true}, // urxvt
+	"\x1b\x1b[d": {Type: KeyShiftLeft, Alt: true},  // urxvt
+	"\x1b[1;5A":  {Type: KeyCtrlUp},
+	"\x1b[1;5B":  {Type: KeyCtrlDown},
+	"\x1b[1;5C":  {Type: KeyCtrlRight},
+	"\x1b[1;5D":  {Type: KeyCtrlLeft},
+	"\x1b[Oa":    {Type: KeyCtrlUp, Alt: true},    // urxvt
+	"\x1b[Ob":    {Type: KeyCtrlDown, Alt: true},  // urxvt
+	"\x1b[Oc":    {Type: KeyCtrlRight, Alt: true}, // urxvt
+	"\x1b[Od":    {Type: KeyCtrlLeft, Alt: true},  // urxvt
+	"\x1b[1;6A":  {Type: KeyCtrlShiftUp},
+	"\x1b[1;6B":  {Type: KeyCtrlShiftDown},
+	"\x1b[1;6C":  {Type: KeyCtrlShiftRight},
+	"\x1b[1;6D":  {Type: KeyCtrlShiftLeft},
+	"\x1b[1;7A":  {Type: KeyCtrlUp, Alt: true},
+	"\x1b[1;7B":  {Type: KeyCtrlDown, Alt: true},
+	"\x1b[1;7C":  {Type: KeyCtrlRight, Alt: true},
+	"\x1b[1;7D":  {Type: KeyCtrlLeft, Alt: true},
+	"\x1b[1;8A":  {Type: KeyCtrlShiftUp, Alt: true},
+	"\x1b[1;8B":  {Type: KeyCtrlShiftDown, Alt: true},
+	"\x1b[1;8C":  {Type: KeyCtrlShiftRight, Alt: true},
+	"\x1b[1;8D":  {Type: KeyCtrlShiftLeft, Alt: true},
+
+	// Miscellaneous keys
+	"\x1b[Z":      {Type: KeyShiftTab},
+	"\x1b[3~":     {Type: KeyDelete},
+	"\x1b[3;3~":   {Type: KeyDelete, Alt: true},
+	"\x1b[1~":     {Type: KeyHome},
+	"\x1b[1;3H~":  {Type: KeyHome, Alt: true},
+	"\x1b[4~":     {Type: KeyEnd},
+	"\x1b[1;3F~":  {Type: KeyEnd, Alt: true},
+	"\x1b[5~":     {Type: KeyPgUp},
+	"\x1b[5;3~":   {Type: KeyPgUp, Alt: true},
+	"\x1b[6~":     {Type: KeyPgDown},
+	"\x1b[6;3~":   {Type: KeyPgDown, Alt: true},
+	"\x1b[7~":     {Type: KeyHome},              // urxvt
+	"\x1b[8~":     {Type: KeyEnd},               // urxvt
+	"\x1b\x1b[3~": {Type: KeyDelete, Alt: true}, // urxvt
+	"\x1b\x1b[5~": {Type: KeyPgUp, Alt: true},   // urxvt
+	"\x1b\x1b[6~": {Type: KeyPgDown, Alt: true}, // urxvt
+	"\x1b\x1b[7~": {Type: KeyHome, Alt: true},   // urxvt
+	"\x1b\x1b[8~": {Type: KeyEnd, Alt: true},    // urxvt
+
+	// Function keys, X11
+	"\x1bOP":     {Type: KeyF1},  // vt100
+	"\x1bOQ":     {Type: KeyF2},  // vt100
+	"\x1bOR":     {Type: KeyF3},  // vt100
+	"\x1bOS":     {Type: KeyF4},  // vt100
+	"\x1b[15~":   {Type: KeyF5},  // also urxvt
+	"\x1b[17~":   {Type: KeyF6},  // also urxvt
+	"\x1b[18~":   {Type: KeyF7},  // also urxvt
+	"\x1b[19~":   {Type: KeyF8},  // also urxvt
+	"\x1b[20~":   {Type: KeyF9},  // also urxvt
+	"\x1b[21~":   {Type: KeyF10}, // also urxvt
+	"\x1b[23~":   {Type: KeyF11}, // also urxvt
+	"\x1b[24~":   {Type: KeyF12}, // also urxvt
+	"\x1b[1;2P":  {Type: KeyF13},
+	"\x1b[1;2Q":  {Type: KeyF14},
+	"\x1b[1;2R":  {Type: KeyF15},
+	"\x1b[1;2S":  {Type: KeyF16},
+	"\x1b[15;2~": {Type: KeyF17},
+	"\x1b[17;2~": {Type: KeyF18},
+	"\x1b[18;2~": {Type: KeyF19},
+	"\x1b[19;2~": {Type: KeyF20},
+
+	// Function keys with the alt modifier, X11
+	"\x1b[1;3P":  {Type: KeyF1, Alt: true},
+	"\x1b[1;3Q":  {Type: KeyF2, Alt: true},
+	"\x1b[1;3R":  {Type: KeyF3, Alt: true},
+	"\x1b[1;3S":  {Type: KeyF4, Alt: true},
+	"\x1b[15;3~": {Type: KeyF5, Alt: true},
+	"\x1b[17;3~": {Type: KeyF6, Alt: true},
+	"\x1b[18;3~": {Type: KeyF7, Alt: true},
+	"\x1b[19;3~": {Type: KeyF8, Alt: true},
+	"\x1b[20;3~": {Type: KeyF9, Alt: true},
+	"\x1b[21;3~": {Type: KeyF10, Alt: true},
+	"\x1b[23;3~": {Type: KeyF11, Alt: true},
+	"\x1b[24;3~": {Type: KeyF12, Alt: true},
+
+	// Function keys, urxvt
+	"\x1b[11~": {Type: KeyF1},
+	"\x1b[12~": {Type: KeyF2},
+	"\x1b[13~": {Type: KeyF3},
+	"\x1b[14~": {Type: KeyF4},
+	"\x1b[25~": {Type: KeyF13},
+	"\x1b[26~": {Type: KeyF14},
+	"\x1b[28~": {Type: KeyF15},
+	"\x1b[29~": {Type: KeyF16},
+	"\x1b[31~": {Type: KeyF17},
+	"\x1b[32~": {Type: KeyF18},
+	"\x1b[33~": {Type: KeyF19},
+	"\x1b[34~": {Type: KeyF20},
+
+	// Function keys with the alt modifier, urxvt
+	"\x1b\x1b[11~": {Type: KeyF1, Alt: true},
+	"\x1b\x1b[12~": {Type: KeyF2, Alt: true},
+	"\x1b\x1b[13~": {Type: KeyF3, Alt: true},
+	"\x1b\x1b[14~": {Type: KeyF4, Alt: true},
+	"\x1b\x1b[25~": {Type: KeyF13, Alt: true},
+	"\x1b\x1b[26~": {Type: KeyF14, Alt: true},
+	"\x1b\x1b[28~": {Type: KeyF15, Alt: true},
+	"\x1b\x1b[29~": {Type: KeyF16, Alt: true},
+	"\x1b\x1b[31~": {Type: KeyF17, Alt: true},
+	"\x1b\x1b[32~": {Type: KeyF18, Alt: true},
+	"\x1b\x1b[33~": {Type: KeyF19, Alt: true},
+	"\x1b\x1b[34~": {Type: KeyF20, Alt: true},
 }
 
-// Mapping for hex codes to consts. Unclear why these won't register as
-// sequences.
+// Hex code mappings.
 var hexes = map[string]Key{
-	"1b5b5a":       {Type: KeyShiftTab},
-	"1b5b337e":     {Type: KeyDelete},
-	"1b0d":         {Type: KeyEnter, Alt: true},
-	"1b7f":         {Type: KeyBackspace, Alt: true},
-	"1b5b48":       {Type: KeyHome},
-	"1b5b377e":     {Type: KeyHome}, // urxvt
-	"1b5b313b3348": {Type: KeyHome, Alt: true},
-	"1b1b5b377e":   {Type: KeyHome, Alt: true}, // urxvt
-	"1b5b46":       {Type: KeyEnd},
-	"1b5b387e":     {Type: KeyEnd}, // urxvt
-	"1b5b313b3346": {Type: KeyEnd, Alt: true},
-	"1b1b5b387e":   {Type: KeyEnd, Alt: true}, // urxvt
-	"1b5b357e":     {Type: KeyPgUp},
-	"1b5b353b337e": {Type: KeyPgUp, Alt: true},
-	"1b1b5b357e":   {Type: KeyPgUp, Alt: true}, // urxvt
-	"1b5b367e":     {Type: KeyPgDown},
-	"1b5b363b337e": {Type: KeyPgDown, Alt: true},
-	"1b1b5b367e":   {Type: KeyPgDown, Alt: true}, // urxvt
-	"1b5b313b3341": {Type: KeyUp, Alt: true},
-	"1b5b313b3342": {Type: KeyDown, Alt: true},
-	"1b5b313b3343": {Type: KeyRight, Alt: true},
-	"1b5b313b3344": {Type: KeyLeft, Alt: true},
+	"1b0d": {Type: KeyEnter, Alt: true},
+	"1b7f": {Type: KeyBackspace, Alt: true},
 
 	// Powershell
 	"1b4f41": {Type: KeyUp, Alt: false},
@@ -303,7 +481,7 @@ func readInputs(input io.Reader) ([]Msg, error) {
 		return nil, err
 	}
 
-	// See if it's a mouse event. For now we're parsing X10-type mouse events
+	// Check if it's a mouse event. For now we're parsing X10-type mouse events
 	// only.
 	mouseEvent, err := parseX10MouseEvents(buf[:numBytes])
 	if err == nil {
@@ -314,35 +492,7 @@ func readInputs(input io.Reader) ([]Msg, error) {
 		return m, nil
 	}
 
-	// Is it a special sequence, like an arrow key?
-	if k, ok := sequences[string(buf[:numBytes])]; ok {
-		return []Msg{
-			KeyMsg(Key{Type: k}),
-		}, nil
-	}
-
-	// Some of these need special handling
-	hex := fmt.Sprintf("%x", buf[:numBytes])
-	if k, ok := hexes[hex]; ok {
-		return []Msg{
-			KeyMsg(k),
-		}, nil
-	}
-
-	// Is the alt key pressed? The buffer will be prefixed with an escape
-	// sequence if so.
-	if numBytes > 1 && buf[0] == 0x1b {
-		// Now remove the initial escape sequence and re-process to get the
-		// character being pressed in combination with alt.
-		c, _ := utf8.DecodeRune(buf[1:])
-		if c == utf8.RuneError {
-			return nil, errors.New("could not decode rune after removing initial escape")
-		}
-		return []Msg{
-			KeyMsg(Key{Alt: true, Type: KeyRunes, Runes: []rune{c}}),
-		}, nil
-	}
-
+	var runeSets [][]rune
 	var runes []rune
 	b := buf[:numBytes]
 
@@ -354,30 +504,64 @@ func readInputs(input io.Reader) ([]Msg, error) {
 		if r == utf8.RuneError {
 			return nil, errors.New("could not decode rune")
 		}
+
+		if r == '\x1b' && len(runes) > 1 {
+			// a new key sequence has started
+			runeSets = append(runeSets, runes)
+			runes = []rune{}
+		}
+
 		runes = append(runes, r)
 		w = width
 	}
+	// add the final set of runes we decoded
+	runeSets = append(runeSets, runes)
 
-	if len(runes) == 0 {
+	if len(runeSets) == 0 {
 		return nil, errors.New("received 0 runes from input")
-	} else if len(runes) > 1 {
-		// We received multiple runes, so we know this isn't a control
-		// character, sequence, and so on.
-		return []Msg{
-			KeyMsg(Key{Type: KeyRunes, Runes: runes}),
-		}, nil
 	}
 
-	// Is the first rune a control character?
-	r := KeyType(runes[0])
-	if numBytes == 1 && r <= keyUS || r == keyDEL {
-		return []Msg{
-			KeyMsg(Key{Type: r}),
-		}, nil
+	var msgs []Msg
+	for _, runes := range runeSets {
+		// Is it a sequence, like an arrow key?
+		if k, ok := sequences[string(runes)]; ok {
+			msgs = append(msgs, KeyMsg(k))
+			continue
+		}
+
+		// Some of these need special handling.
+		hex := fmt.Sprintf("%x", runes)
+		if k, ok := hexes[hex]; ok {
+			msgs = append(msgs, KeyMsg(k))
+			continue
+		}
+
+		// Is the alt key pressed? If so, the buffer will be prefixed with an
+		// escape.
+		if len(runes) > 1 && runes[0] == 0x1b {
+			msgs = append(msgs, KeyMsg(Key{Alt: true, Type: KeyRunes, Runes: runes[1:]}))
+			continue
+		}
+
+		for _, v := range runes {
+			// Is the first rune a control character?
+			r := KeyType(v)
+			if r <= keyUS || r == keyDEL {
+				msgs = append(msgs, KeyMsg(Key{Type: r}))
+				continue
+			}
+
+			// If it's a space, override the type with KeySpace (but still include
+			// the rune).
+			if r == ' ' {
+				msgs = append(msgs, KeyMsg(Key{Type: KeySpace, Runes: []rune{v}}))
+				continue
+			}
+
+			// Welp, just regular, ol' runes.
+			msgs = append(msgs, KeyMsg(Key{Type: KeyRunes, Runes: []rune{v}}))
+		}
 	}
 
-	// Welp, it's just a regular, ol' single rune
-	return []Msg{
-		KeyMsg(Key{Type: KeyRunes, Runes: runes}),
-	}, nil
+	return msgs, nil
 }

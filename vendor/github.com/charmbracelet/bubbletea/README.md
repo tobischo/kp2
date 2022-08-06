@@ -38,7 +38,7 @@ Be sure to check out [Bubbles][bubbles], a library of common UI components for B
 ## Tutorial
 
 Bubble Tea is based on the functional design paradigms of [The Elm
-Architecture][elm] which happens to work nicely with Go. It's a delightful way to
+Architecture][elm], which happen to work nicely with Go. It's a delightful way to
 build applications.
 
 By the way, the non-annotated source code for this program is available
@@ -255,6 +255,23 @@ there are [Go Docs][docs].
 [examples]: http://github.com/charmbracelet/bubbletea/tree/master/examples
 [docs]: https://pkg.go.dev/github.com/charmbracelet/bubbletea?tab=doc
 
+## Debugging with Delve
+
+Since Bubble Tea apps assume control of stdin and stdout, you’ll need to run
+delve in headless mode and then connect to it:
+
+```bash
+# Start the debugger
+$ dlv debug --headless .
+API server listening at: 127.0.0.1:34241
+
+# Connect to it from another terminal
+$ dlv connect 127.0.0.1:34241
+```
+
+Note that the default port used will vary on your system and per run, so
+actually watch out what address the first `dlv` run tells you to connect to.
+
 ## Libraries we use with Bubble Tea
 
 * [Bubbles][bubbles]: Common Bubble Tea components such as text inputs, viewports, spinners and so on
@@ -273,31 +290,40 @@ there are [Go Docs][docs].
 
 For some Bubble Tea programs in production, see:
 
-* [Glow](https://github.com/charmbracelet/glow): a markdown reader, browser and online markdown stash
-* [The Charm Tool](https://github.com/charmbracelet/charm): the Charm user account manager
-* [kboard](https://github.com/CamiloGarciaLaRotta/kboard): a typing game
-* [tasktimer](https://github.com/caarlos0/tasktimer): a dead-simple task timer
-* [fork-cleaner](https://github.com/caarlos0/fork-cleaner): cleans up old and inactive forks in your GitHub account
-* [STTG](https://github.com/wille1101/sttg): teletext client for SVT, Sweden’s national public television station
-* [gitflow-toolkit](https://github.com/mritd/gitflow-toolkit): a GitFlow submission tool
-* [ticker](https://github.com/achannarasappa/ticker): a terminal stock watcher and stock position tracker
-* [tz](https://github.com/oz/tz): an aid for scheduling across multiple time zones
-* [httpit](https://github.com/gonetx/httpit): a rapid http(s) benchmark tool
-* [gembro](https://git.sr.ht/~rafael/gembro): a mouse-driven Gemini browser
-* [fm](https://github.com/knipferrc/fm): a terminal-based file manager
-* [StormForge Optimize – Controller](https://github.com/thestormforge/optimize-controller): a tool for experimenting with application configurations in Kubernetes
-* [Slides](https://github.com/maaslalani/slides): a markdown-based presentation tool
-* [Typer](https://github.com/maaslalani/typer): a typing test
 * [AT CLI](https://github.com/daskycodes/at_cli): a utility for executing AT Commands via serial port connections
 * [Canard](https://github.com/mrusme/canard): an RSS client
-* [termdbms](https://github.com/mathaou/termdbms): a keyboard and mouse driven database browser
-* [gh-prs](https://www.github.com/dlvhdr/gh-prs): gh cli extension to display a dashboard of PRs
+* [The Charm Tool](https://github.com/charmbracelet/charm): the Charm user account manager
 * [clidle](https://github.com/ajeetdsouza/clidle): a Wordle clone for your terminal
-* [mc](https://github.com/minio/mc): the official [MinIO](https://min.io) client
+* [fm](https://github.com/knipferrc/fm): a terminal-based file manager
+* [fork-cleaner](https://github.com/caarlos0/fork-cleaner): cleans up old and inactive forks in your GitHub account
 * [gambit](https://github.com/maaslalani/gambit): play chess in the terminal
+* [gembro](https://git.sr.ht/~rafael/gembro): a mouse-driven Gemini browser
+* [gh-b](https://github.com/joaom00/gh-b): GitHub CLI extension to easily manage your branches
+* [gh-dash](https://www.github.com/dlvhdr/gh-dash): GitHub cli extension to display a dashboard of PRs and issues
+* [gitflow-toolkit](https://github.com/mritd/gitflow-toolkit): a GitFlow submission tool
+* [Glow](https://github.com/charmbracelet/glow): a markdown reader, browser and online markdown stash
 * [gocovsh](https://github.com/orlangure/gocovsh): explore Go coverage reports from the CLI
-* [tran](https://github.com/abdfnx/tran): securely transfer stuff between computers
+* [httpit](https://github.com/gonetx/httpit): a rapid http(s) benchmark tool
+* [IDNT](https://github.com/r-darwish/idnt): batch software uninstaller
+* [kboard](https://github.com/CamiloGarciaLaRotta/kboard): a typing game
+* [mergestat](https://github.com/mergestat/mergestat): run SQL queries on git repositories
+* [mc](https://github.com/minio/mc): the official [MinIO](https://min.io) client
+* [portal][portal]: securely send transfer between computers
+* [redis-viewer](https://github.com/SaltFishPr/redis-viewer): browse Redis databases
+* [Slides](https://github.com/maaslalani/slides): a markdown-based presentation tool
+* [Soft Serve](https://github.com/charmbracelet/soft-serve): a command-line-first Git server that runs a TUI over SSH
+* [StormForge Optimize Controller](https://github.com/thestormforge/optimize-controller): a tool for experimenting with application configurations in Kubernetes
+* [STTG](https://github.com/wille1101/sttg): teletext client for SVT, Sweden’s national public television station
+* [sttr](https://github.com/abhimanyu003/sttr): run various text transformations
+* [tasktimer](https://github.com/caarlos0/tasktimer): a dead-simple task timer
+* [termdbms](https://github.com/mathaou/termdbms): a keyboard and mouse driven database browser
+* [ticker](https://github.com/achannarasappa/ticker): a terminal stock watcher and stock position tracker
+* [tran](https://github.com/abdfnx/tran): securely transfer stuff between computers (based on [portal][portal])
+* [tz](https://github.com/oz/tz): an aid for scheduling across multiple time zones
+* [Typer](https://github.com/maaslalani/typer): a typing test
 * [wishlist](https://github.com/charmbracelet/wishlist): an SSH directory
+
+[portal]: https://github.com/ZinoKader/portal
 
 ## Feedback
 

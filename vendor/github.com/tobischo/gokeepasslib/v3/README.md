@@ -1,8 +1,6 @@
 gokeepasslib
 ============
 
-[![Travis Build state](https://api.travis-ci.org/tobischo/gokeepasslib.svg)](https://travis-ci.org/tobischo/gokeepasslib)
-
 gokeepasslib is a library which allows reading Keepass 2 files (kdbx).
 
 Note: only Keepass v2.30 or higher is properly supported since earlier versions do not allow empty XML tags but expected self-closing tags (which is valid XML but not really supported by Golang on XML marshaling)
@@ -38,7 +36,7 @@ import (
 )
 
 func main() {
-    file, _ := os.Open("examples/example.kdbx")
+    file, _ := os.Open("examples/reading/example.kdbx")
 
     db := gokeepasslib.NewDatabase()
     db.Credentials = gokeepasslib.NewPasswordCredentials("abcdefg12345678")
@@ -60,11 +58,11 @@ In kdbx files, which are encrypted using the file credentials, fields are protec
 
 ### Example: writing a file
 
-See [examples/example-writing.go](examples/example-writing.go)
+See [examples/writing/example-writing.go](examples/writing/example-writing.go)
 
 ### Example: deleting a file
 
-See [examples/example-deleting.go](examples/example-deleting.go)
+See [examples/deleting/example-deleting.go](examples/deleting/example-deleting.go)
 
 ### TODO
 
@@ -81,4 +79,4 @@ See [examples/example-deleting.go](examples/example-deleting.go)
 [LICENSE](LICENSE.md)
 
 ### Copyright
-Copyright &copy; 2020 Tobias Schoknecht. All rights reserved.
+Copyright &copy; 2022 Tobias Schoknecht. All rights reserved.

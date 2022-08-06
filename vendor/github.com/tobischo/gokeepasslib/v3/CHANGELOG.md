@@ -1,3 +1,20 @@
+### v3.4.1
+
+* Fix key file support to actually deal with the different supported key file types
+
+### v3.4.0
+
+* Fix binary referencing after remove
+* Add binary garbage collections if all references have been removed
+
+### v3.3.0
+
+* Add database `AddBinary` and `FindBinary` functions
+
+### v3.2.5
+
+* Add missing CustomData support for entries
+
 ### v3.2.4
 
 * Add support for handling protected value unlocking with `Entry` or `Group` being loaded first from XML

@@ -23,6 +23,8 @@ func NewEncoder(w io.Writer) *Encoder {
 
 // Encode writes db to e's internal writer
 func (e *Encoder) Encode(db *Database) error {
+	db.cleanupBinaries()
+
 	// Unlock protected entries ensuring that we have them prepared in the order that is matching
 	// the xml unmarshalling order
 	err := db.UnlockProtectedEntries()
@@ -63,6 +65,17 @@ func (e *Encoder) Encode(db *Database) error {
 		if err = db.Hashes.writeTo(e.w); err != nil {
 			return err
 		}
+
+		// Comment as taken from the original KDBX source:
+		// > The header hash is typically only stored in
+		// > KDBX <= 3.1 files, not in KDBX >= 4 files
+		// > (here, the header is verified via a HMAC),
+		// > but we also support it for KDBX >= 4 files
+		// > (i.e. if it's present, we check it)
+		// That means that for KDBXv4 files we can unset the hash to make sure that it is blank.
+		// Additionally it has to happen somewhere before `xml.MarshalIndent` and this is
+		// the perfect spot just before it specific to KDBXv4 files.
+		db.Content.Meta.HeaderHash = ""
 	} else {
 		db.Content.Meta.HeaderHash = base64.StdEncoding.EncodeToString(hash[:])
 	}
