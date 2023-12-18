@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.22.0
 	github.com/spf13/cobra v1.5.0
 	github.com/tobischo/gokeepasslib/v3 v3.4.1
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+	golang.org/x/crypto v0.17.0
 )
 
 require (
@@ -24,6 +24,6 @@ require (
 	github.com/muesli/termenv v0.12.0 // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
 )
