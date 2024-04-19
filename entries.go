@@ -62,6 +62,10 @@ func readEntry(selection string, g *gokeepasslib.Group) (*gokeepasslib.Entry, er
 		return nil, fmt.Errorf("No entry found")
 	}
 
+	if len(entries) == 1 {
+		return readEntry(entries[0], g)
+	}
+
 	for i, entry := range entries {
 		fmt.Printf("%3d %s\n", i, entry)
 	}
