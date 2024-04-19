@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"syscall"
 
 	"github.com/tobischo/gokeepasslib/v3"
 	"golang.org/x/crypto/ssh/terminal"
@@ -18,7 +19,7 @@ func readString(text string) (string, error) {
 
 func readPassword(text string) (string, error) {
 	fmt.Print(text)
-	pw, err := terminal.ReadPassword(0)
+	pw, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", fmt.Errorf("Failed to read password: '%s'", err)
 	}
