@@ -8,6 +8,6 @@ import (
 
 const version = "WORK IN PROGRESS"
 
-func versionCmd(cmd *cobra.Command, args []string) {
+func versionCmd(_ *cobra.Command, _ []string) {
 	fmt.Println(app, "version", version)
 }

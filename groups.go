@@ -14,7 +14,7 @@ func listGroups(g *gokeepasslib.Group) []string {
 	groups = append(groups, g.Name)
 
 	for _, group := range g.Groups {
-		subGroups := listGroups(&group)
+		subGroups := listGroups(&group) //#nosec G601
 
 		for i, val := range subGroups {
 			subGroups[i] = fmt.Sprintf("%s/%s", g.Name, val)
@@ -41,7 +41,7 @@ func readGroup(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Group, 
 
 	groups := searchGroups(selectors, g)
 	if len(groups) < 1 {
-		return nil, fmt.Errorf("No group found")
+		return nil, errNoGroupFound
 	}
 
 	for i, group := range groups {
@@ -59,8 +59,6 @@ func readGroup(selectors []string, g *gokeepasslib.Group) (*gokeepasslib.Group, 
 	}
 
 	return readGroup(strings.Split(groups[index], "/"), g)
-
-	return nil, fmt.Errorf("Failed to locate group at selector")
 }
 
 func searchGroups(selectors []string, g *gokeepasslib.Group) []string {

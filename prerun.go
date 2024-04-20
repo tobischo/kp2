@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
+
+	"github.com/spf13/cobra"
 )
 
-func paramSetupCmd(cmd *cobra.Command, args []string) {
+func paramSetupCmd(_ *cobra.Command, _ []string) {
 	if filePath == "" {
 		filePath = os.Getenv("KP2FILE")
 	}
@@ -18,7 +19,7 @@ func paramSetupCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
+func loadDatabaseCmd(_ *cobra.Command, _ []string) error {
 	var (
 		password string
 		err      error
@@ -33,7 +34,7 @@ func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
 
 	credentials, err := pickCredentialMode(password)
 	if err != nil {
-		return fmt.Errorf("Failed to setup credentials: '%s'", err)
+		return fmt.Errorf("Failed to setup credentials: '%w'", err)
 	}
 
 	db = new(gokeepasslib.Database)
@@ -41,12 +42,12 @@ func loadDatabaseCmd(cmd *cobra.Command, args []string) error {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("Failed to open Keepass2 file %s: '%s'", filePath, err)
+		return fmt.Errorf("Failed to open Keepass2 file %s: '%w'", filePath, err)
 	}
 
 	err = gokeepasslib.NewDecoder(file).Decode(db)
 	if err != nil {
-		return fmt.Errorf("Failed to decode Keepass2 file: %s", err)
+		return fmt.Errorf("Failed to decode Keepass2 file: %w", err)
 	}
 
 	if err := db.UnlockProtectedEntries(); err != nil {

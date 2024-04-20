@@ -23,7 +23,7 @@ func listEntries(g *gokeepasslib.Group) []string {
 	}
 
 	for _, group := range g.Groups {
-		subEntries := listEntries(&group)
+		subEntries := listEntries(&group) //#nosec G601
 		for i, val := range subEntries {
 			subEntries[i] = fmt.Sprintf("%s/%s", group.Name, val)
 		}
@@ -59,7 +59,7 @@ func readEntry(selection string, g *gokeepasslib.Group) (*gokeepasslib.Entry, er
 
 	entries := searchEntries(selectors, g)
 	if len(entries) < 1 {
-		return nil, fmt.Errorf("No entry found")
+		return nil, errNoEntryFound
 	}
 
 	if len(entries) == 1 {

@@ -6,10 +6,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func persistDatabaseIfChanged(cmd *cobra.Command, args []string) {
+func persistDatabaseIfChanged(_ *cobra.Command, _ []string) {
 	if changed {
 		if err := db.LockProtectedEntries(); err != nil {
-			fmt.Printf("Failed to lock entries: %s\n", err)
+			fmt.Printf("Failed to lock entries: %w\n", err)
 			return
 		}
 

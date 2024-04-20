@@ -22,7 +22,7 @@ func readPassword(text string) (string, error) {
 	fmt.Print(text)
 	pw, err := term.ReadPassword(syscall.Stdin)
 	if err != nil {
-		return "", fmt.Errorf("Failed to read password: '%s'", err)
+		return "", fmt.Errorf("Failed to read password: '%w'", err)
 	}
 	fmt.Println()
 	return string(pw), nil
@@ -46,7 +46,7 @@ func readPasswordWithConfirmation() (string, error) {
 	}
 
 	if password != passwordRepeated {
-		return "", fmt.Errorf("Password and repetition do not match")
+		return "", errPasswordMismatch
 	}
 
 	return password, nil
@@ -66,6 +66,6 @@ func pickCredentialMode(password string) (*gokeepasslib.DBCredentials, error) {
 	case keyFile != "":
 		return gokeepasslib.NewKeyCredentials(keyFile)
 	default:
-		return nil, fmt.Errorf("Key file or password has to be provided")
+		return nil, errCredentialsMissing
 	}
 }

@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
 	"github.com/tobischo/gokeepasslib/v3/wrappers"
+
+	"github.com/spf13/cobra"
 )
 
-func addCmd(cmd *cobra.Command, args []string) error {
+func addCmd(_ *cobra.Command, args []string) error {
 	selectors := strings.Split(strings.Join(args, " "), "/")
 
 	group, err := readGroup(selectors, &db.Content.Root.Groups[0])
@@ -25,7 +25,7 @@ func addCmd(cmd *cobra.Command, args []string) error {
 
 		for _, g := range group.Groups {
 			if g.Name == groupName {
-				return fmt.Errorf("Group Name must be unique within a parent group")
+				return errGroupNameNotUnique
 			}
 		}
 
@@ -51,7 +51,7 @@ func addCmd(cmd *cobra.Command, args []string) error {
 
 		for _, e := range group.Entries {
 			if e.GetTitle() == entryTitle {
-				return fmt.Errorf("Entry Title must be unique within a parent group")
+				return errEntryTitleNotUnique
 			}
 		}
 
@@ -63,7 +63,13 @@ func addCmd(cmd *cobra.Command, args []string) error {
 
 		values := []gokeepasslib.ValueData{
 			{Key: "Notes", Value: gokeepasslib.V{Content: "Notes"}},
-			{Key: "Password", Value: gokeepasslib.V{Content: password, Protected: wrappers.NewBoolWrapper(true)}},
+			{
+				Key: "Password",
+				Value: gokeepasslib.V{
+					Content:   password,
+					Protected: wrappers.NewBoolWrapper(true),
+				},
+			},
 			{Key: "Title", Value: gokeepasslib.V{Content: entryTitle}},
 			{Key: "URL", Value: gokeepasslib.V{Content: entryURL}},
 			{Key: "UserName", Value: gokeepasslib.V{Content: entryUserName}},

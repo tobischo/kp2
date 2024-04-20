@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func copyCmd(cmd *cobra.Command, args []string) error {
+func copyCmd(_ *cobra.Command, args []string) error {
 	entry, err := readEntry(strings.Join(args, " "), &db.Content.Root.Groups[0])
 	if err != nil {
 		return err

@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/atotto/clipboard"
-	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
 
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spf13/cobra"
 )
 
 type viewMode string
@@ -17,9 +17,9 @@ var (
 	viewModeEntry viewMode = "entry"
 )
 
-func browseCmd(cmd *cobra.Command, args []string) error {
+func browseCmd(_ *cobra.Command, _ []string) error {
 	p := tea.NewProgram(initiateModel(&db.Content.Root.Groups[0]))
-	if err := p.Start(); err != nil {
+	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("Encountered error: %w", err)
 	}
 
@@ -73,13 +73,11 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
 	// Is it a key press?
 	case tea.KeyMsg:
 
 		// Cool, what was the actual key pressed?
 		switch msg.String() {
-
 		// These keys should exit the program.
 		case "ctrl+c", "q":
 			return m, tea.Quit
@@ -126,7 +124,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter", " ":
 			if m.mode == viewModeEntry {
-				entry := m.choices[m.cursor].(gokeepasslib.Entry)
+				entry, ok := m.choices[m.cursor].(gokeepasslib.Entry)
+				if !ok {
+					// Do nothing for now
+					break
+				}
 
 				// Ignore error here for now
 				_ = clipboard.WriteAll(entry.GetPassword())
@@ -161,7 +163,6 @@ func (m model) viewList() string {
 
 	// Iterate over our choices
 	for i, choice := range m.choices {
-
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
 		if m.cursor == i {
@@ -184,12 +185,18 @@ func (m model) viewList() string {
 }
 
 func (m model) viewEntry() string {
-	entry := m.choices[m.cursor].(gokeepasslib.Entry)
+	entry, ok := m.choices[m.cursor].(gokeepasslib.Entry)
+	if !ok {
+		return "fatal: choice is not entry"
+	}
 
 	s := "Entry\n\n"
 	s += fmt.Sprintf("Title:             %s\n", entry.GetTitle())
 	s += fmt.Sprintf("Creation:          %s\n", entry.Times.CreationTime.Time.Format(timeFormat))
-	s += fmt.Sprintf("Last Modification: %s\n", entry.Times.LastModificationTime.Time.Format(timeFormat))
+	s += fmt.Sprintf(
+		"Last Modification: %s\n",
+		entry.Times.LastModificationTime.Time.Format(timeFormat),
+	)
 	s += fmt.Sprintf("Last Access:       %s\n", entry.Times.LastAccessTime.Time.Format(timeFormat))
 	s += fmt.Sprintf("UserName:          %s\n", entry.GetContent("UserName"))
 	s += fmt.Sprintf("URL:               %s\n", entry.GetContent("URL"))

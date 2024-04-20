@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
+
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -15,20 +16,22 @@ var keyFile string
 var filePath string
 var groupFlag bool
 
-var changed bool = false
+var changed = false
 
 var db *gokeepasslib.Database
 
 func main() {
-
 	// var cmdAdd = &cobra.Command{
 	// 	Use:     "add [selector]",
 	// 	Short:   "adds a new entry at the given location",
-	// 	Long:    `add builds a new entry at the given location and asks for the information required`,
+	// 	Long:    `add builds a new entry at the given location and ` +
+	// 		`asks for the information required`,
 	// 	PreRunE: loadDatabaseCmd,
 	// 	RunE:    addCmd,
 	// }
-	// cmdAdd.Flags().BoolVarP(&groupFlag, "group", "g", false, "if set to true adds a group instead of an entry")
+	// cmdAdd.
+	// 	Flags().
+	// 	BoolVarP(&groupFlag, "group", "g", false, when true adds a group instead of an entry")
 
 	var cmdBrowse = &cobra.Command{
 		Use:     "browse",
@@ -64,14 +67,16 @@ func main() {
 	var cmdInit = &cobra.Command{
 		Use:   "init [no options!]",
 		Short: "initializes a new kdbx file",
-		Long:  `init is for creating a new basic keepass file at the given location. It will fail if a file already exists`,
-		RunE:  initCmd,
+		Long: `init is for creating a new basic keepass file at the given location. ` +
+			`It will fail if a file already exists`,
+		RunE: initCmd,
 	}
 
 	// var cmdMove = &cobra.Command{
 	// 	Use:   "move [sourceSelector] [targetSelector]",
 	// 	Short: "moves an entry within the file",
-	// 	Long:  `move takes an entry from the position given with [sourceSelector] and moves it to the group given at [targetSelector]`,
+	// 	Long:  `move takes an entry from the position given with [sourceSelector] ` +
+	// 		`and moves it to the group given at [targetSelector]`,
 	// 	Run: func(cmd *cobra.Command, args []string) {
 	// 		fmt.Println("move")
 	// 	},
@@ -80,7 +85,8 @@ func main() {
 	// var cmdRemove = &cobra.Command{
 	// 	Use:   "remove [selector]",
 	// 	Short: "removes an entry from the keepass file",
-	// 	Long:  `remove takes an entry out of the Keepass file. It asks for confirmation before persisting the file`,
+	// 	Long:  `remove takes an entry out of the Keepass file. ` +
+	// 		`It asks for confirmation before persisting the file`,
 	// 	Run: func(cmd *cobra.Command, args []string) {
 	// 		fmt.Println("remove")
 	// 	},
@@ -110,7 +116,7 @@ func main() {
 	)
 	rootCmd.PersistentFlags().StringVarP(
 		&filePath, "file", "f", "",
-		"Keepass2 file to be loaded, setting KP2FILE allows ommiting this flag",
+		"Keepass2 file to be loaded, setting KP2FILE allows omitting this flag",
 	)
 
 	rootCmd.AddCommand(

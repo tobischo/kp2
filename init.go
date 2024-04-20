@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
+
+	"github.com/spf13/cobra"
 )
 
-func initCmd(cmd *cobra.Command, args []string) error {
+func initCmd(_ *cobra.Command, _ []string) error {
 	db = gokeepasslib.NewDatabase()
 
 	if _, err := os.Stat(filePath); err == nil {
-		return fmt.Errorf("File at '%s' already exists", filePath)
+		return fmt.Errorf("File at '%s' already exists: %w", filePath, err)
 	}
 
 	var (
@@ -29,7 +30,7 @@ func initCmd(cmd *cobra.Command, args []string) error {
 
 	credentials, err := pickCredentialMode(password)
 	if err != nil {
-		return fmt.Errorf("Failed to setup credentials: '%s'", err)
+		return fmt.Errorf("failed to setup credentials: '%w'", err)
 	}
 
 	db.Credentials = credentials

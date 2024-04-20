@@ -17,7 +17,7 @@ const (
 	specialBytes   = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 )
 
-func generateCmd(cmd *cobra.Command, args []string) error {
+func generateCmd(_ *cobra.Command, _ []string) error {
 	var passwordBytes string
 
 	passwordLengthStr, err := readString("Desired password length? ")
