@@ -9,7 +9,7 @@ import (
 func persistDatabaseIfChanged(_ *cobra.Command, _ []string) {
 	if changed {
 		if err := db.LockProtectedEntries(); err != nil {
-			fmt.Printf("Failed to lock entries: %w\n", err)
+			fmt.Printf("Failed to lock entries: %s\n", err)
 			return
 		}
 
