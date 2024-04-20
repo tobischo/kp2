@@ -2,6 +2,7 @@ package gokeepasslib
 
 import (
 	"encoding/xml"
+	"errors"
 	"io"
 
 	w "github.com/tobischo/gokeepasslib/v3/wrappers"
@@ -20,11 +21,15 @@ func WithGroupFormattedTime(formatted bool) GroupOption {
 		WithTimeDataFormattedTime(formatted)(&g.Times)
 
 		for _, group := range g.Groups {
-			WithGroupFormattedTime(formatted)(&group)
+			g := group
+
+			WithGroupFormattedTime(formatted)(&g)
 		}
 
 		for _, entry := range g.Entries {
-			WithEntryFormattedTime(formatted)(&entry)
+			e := entry
+
+			WithEntryFormattedTime(formatted)(&e)
 		}
 	}
 }
@@ -63,10 +68,10 @@ func (g Group) Clone() Group {
 }
 
 // UnmarshalXML unmarshals the boolean from d
-func (g *Group) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (g *Group) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 	for {
 		token, err := d.Token()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		switch element := token.(type) {

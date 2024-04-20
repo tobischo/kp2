@@ -12,44 +12,101 @@ import (
 	"reflect"
 )
 
-// BaseSignature is the valid base signature for kdbx files
-var BaseSignature = [...]byte{0x03, 0xd9, 0xa2, 0x9a}
+var (
+	// BaseSignature is the valid base signature for kdbx files
+	BaseSignature = [...]byte{0x03, 0xd9, 0xa2, 0x9a}
 
-// SecondarySignature is the valid version signature for kdbx files
-var SecondarySignature = [...]byte{0x67, 0xfb, 0x4b, 0xb5}
+	// SecondarySignature is the valid version signature for kdbx files
+	SecondarySignature = [...]byte{0x67, 0xfb, 0x4b, 0xb5}
 
-// DefaultKDBX3Sig is the full valid default signature struct for new databases (Kdbx v3.1)
-var DefaultKDBX3Sig = Signature{BaseSignature, SecondarySignature, 1, 3}
+	// DefaultKDBX3Sig is the full valid default signature struct for new databases (Kdbx v3.1)
+	DefaultKDBX3Sig = Signature{BaseSignature, SecondarySignature, 1, 3}
 
-// DefaultKDBX4Sig is the full valid default signature struct for new databases (Kdbx v4.0)
-var DefaultKDBX4Sig = Signature{BaseSignature, SecondarySignature, 0, 4}
+	// DefaultKDBX4Sig is the full valid default signature struct for new databases (Kdbx v4.0)
+	DefaultKDBX4Sig = Signature{BaseSignature, SecondarySignature, 0, 4}
 
-// DefaultSig is the full valid default signature struct for new databases (Kdbx v3.1)
-var DefaultSig = DefaultKDBX3Sig
+	// DefaultSig is the full valid default signature struct for new databases (Kdbx v3.1)
+	DefaultSig = DefaultKDBX3Sig
+
+	errHeaderSHA256MisMatching = errors.New("Sha256 of header mismatching")
+)
 
 // Compression flags
 const (
 	NoCompressionFlag   uint32 = 0 // No compression flag
 	GzipCompressionFlag uint32 = 1 // Gzip compression flag
+
+	headerIDHeaderEnd          = 0
+	headerIDComment            = 1
+	headerIDCipherID           = 2
+	headerIDCompressionsFlags  = 3
+	headerIDMasterSeed         = 4
+	headerIDTransformSeed      = 5
+	headerIDTransformRounds    = 6
+	headerIDEncryptionIV       = 7
+	headerIDProtectedStreamKey = 8
+	headerIDStreamStartBytes   = 9
+	headerIDInnerRandomStream  = 10
+	headerIDKdfParameters      = 11
+	headerIDPublicCustomData   = 12
+
+	memorySize = 1024 * 1024
+
+	defaultTransformRounds = 6000
+	defaultParallelism     = 2
+	defaultIterations      = 2
+	defaultVersion         = 19
+
+	kdbxV4Version = 4
 )
 
 // CipherAES is the AES cipher ID
-var CipherAES = []byte{0x31, 0xC1, 0xF2, 0xE6, 0xBF, 0x71, 0x43, 0x50, 0xBE, 0x58, 0x05, 0x21, 0x6A, 0xFC, 0x5A, 0xFF}
+var CipherAES = []byte{
+	0x31, 0xC1, 0xF2, 0xE6,
+	0xBF, 0x71, 0x43, 0x50,
+	0xBE, 0x58, 0x05, 0x21,
+	0x6A, 0xFC, 0x5A, 0xFF,
+}
 
 // CipherTwoFish is the TwoFish cipher ID
-var CipherTwoFish = []byte{0xAD, 0x68, 0xF2, 0x9F, 0x57, 0x6F, 0x4B, 0xB9, 0xA3, 0x6A, 0xD4, 0x7A, 0xF9, 0x65, 0x34, 0x6C}
+var CipherTwoFish = []byte{
+	0xAD, 0x68, 0xF2, 0x9F,
+	0x57, 0x6F, 0x4B, 0xB9,
+	0xA3, 0x6A, 0xD4, 0x7A,
+	0xF9, 0x65, 0x34, 0x6C,
+}
 
 // CipherChaCha20 is the ChaCha20 cipher ID
-var CipherChaCha20 = []byte{0xD6, 0x03, 0x8A, 0x2B, 0x8B, 0x6F, 0x4C, 0xB5, 0xA5, 0x24, 0x33, 0x9A, 0x31, 0xDB, 0xB5, 0x9A}
+var CipherChaCha20 = []byte{
+	0xD6, 0x03, 0x8A, 0x2B,
+	0x8B, 0x6F, 0x4C, 0xB5,
+	0xA5, 0x24, 0x33, 0x9A,
+	0x31, 0xDB, 0xB5, 0x9A,
+}
 
 // KdfAES3 is the AES key derivation function ID for Kdbx v3.1
-var KdfAES3 = []byte{0xC9, 0xD9, 0xF3, 0x9A, 0x62, 0x8A, 0x44, 0x60, 0xBF, 0x74, 0x0D, 0x08, 0xC1, 0x8A, 0x4F, 0xEA}
+var KdfAES3 = []byte{
+	0xC9, 0xD9, 0xF3, 0x9A,
+	0x62, 0x8A, 0x44, 0x60,
+	0xBF, 0x74, 0x0D, 0x08,
+	0xC1, 0x8A, 0x4F, 0xEA,
+}
 
 // KdfAES4 is the AES key derivation function ID for Kdbx v4
-var KdfAES4 = []byte{0x7C, 0x02, 0xBB, 0x82, 0x79, 0xA7, 0x4A, 0xC0, 0x92, 0x7D, 0x11, 0x4A, 0x00, 0x64, 0x82, 0x38}
+var KdfAES4 = []byte{
+	0x7C, 0x02, 0xBB, 0x82,
+	0x79, 0xA7, 0x4A, 0xC0,
+	0x92, 0x7D, 0x11, 0x4A,
+	0x00, 0x64, 0x82, 0x38,
+}
 
 // KdfArgon2 is the Argon2 key derivation function ID
-var KdfArgon2 = []byte{0xEF, 0x63, 0x6D, 0xDF, 0x8C, 0x29, 0x44, 0x4B, 0x91, 0xF7, 0xA9, 0xA4, 0x03, 0xE3, 0x0A, 0x0C}
+var KdfArgon2 = []byte{
+	0xEF, 0x63, 0x6D, 0xDF,
+	0x8C, 0x29, 0x44, 0x4B,
+	0x91, 0xF7, 0xA9, 0xA4,
+	0x03, 0xE3, 0x0A, 0x0C,
+}
 
 // DBHeader is the header of a database
 type DBHeader struct {
@@ -162,7 +219,7 @@ func NewKDBX3FileHeaders() *FileHeaders {
 		CompressionFlags:    GzipCompressionFlag,
 		MasterSeed:          masterSeed,
 		TransformSeed:       transformSeed,
-		TransformRounds:     6000,
+		TransformRounds:     defaultTransformRounds,
 		EncryptionIV:        encryptionIV,
 		ProtectedStreamKey:  protectedStreamKey,
 		StreamStartBytes:    streamStartBytes,
@@ -190,10 +247,10 @@ func NewKDBX4FileHeaders() *FileHeaders {
 			UUID:        KdfArgon2,
 			Rounds:      0,
 			Salt:        salt,
-			Parallelism: 2,
-			Memory:      1048576,
-			Iterations:  2,
-			Version:     19,
+			Parallelism: defaultParallelism,
+			Memory:      memorySize,
+			Iterations:  defaultIterations,
+			Version:     defaultVersion,
 		},
 	}
 }
@@ -224,7 +281,7 @@ func (h *DBHeader) readFrom(r io.Reader) error {
 		h.RawData = buffer.Bytes()
 
 		if err != nil {
-			if err == ErrEndOfHeaders {
+			if errors.Is(err, ErrEndOfHeaders) {
 				break
 			}
 			return err
@@ -276,32 +333,32 @@ func (fh *FileHeaders) readHeader31(r io.Reader) error {
 // readFileHeader reads a header value and puts it into the right variable
 func (fh *FileHeaders) readFileHeader(id uint8, data []byte) error {
 	switch id {
-	case 0:
+	case headerIDHeaderEnd:
 		return ErrEndOfHeaders
-	case 1:
+	case headerIDComment:
 		fh.Comment = data
-	case 2:
+	case headerIDCipherID:
 		fh.CipherID = data
-	case 3:
+	case headerIDCompressionsFlags:
 		fh.CompressionFlags = binary.LittleEndian.Uint32(data)
-	case 4:
+	case headerIDMasterSeed:
 		fh.MasterSeed = data
-	case 5:
+	case headerIDTransformSeed:
 		fh.TransformSeed = data
-	case 6:
+	case headerIDTransformRounds:
 		fh.TransformRounds = binary.LittleEndian.Uint64(data)
-	case 7:
+	case headerIDEncryptionIV:
 		fh.EncryptionIV = data
-	case 8:
+	case headerIDProtectedStreamKey:
 		fh.ProtectedStreamKey = data
-	case 9:
+	case headerIDStreamStartBytes:
 		fh.StreamStartBytes = data
-	case 10:
+	case headerIDInnerRandomStream:
 		fh.InnerRandomStreamID = binary.LittleEndian.Uint32(data)
-	case 11:
+	case headerIDKdfParameters:
 		fh.KdfParameters = new(KdfParameters)
 		return fh.KdfParameters.readKdfParameters(data)
-	case 12:
+	case headerIDPublicCustomData:
 		fh.PublicCustomData = new(VariantDictionary)
 		return fh.PublicCustomData.readVariantDictionary(data)
 	default:
@@ -356,7 +413,7 @@ const (
 )
 
 // updateRawData converts the kdf parameters into rawdata again
-func (k *KdfParameters) updateRawData() error {
+func (k *KdfParameters) updateRawData() {
 	dict := new(VariantDictionary)
 	dict.Version = 256
 	dict.Items = make([]*VariantDictionaryItem, 0, 9)
@@ -461,8 +518,6 @@ func (k *KdfParameters) updateRawData() error {
 	}
 
 	k.RawData = dict
-
-	return nil
 }
 
 // readVariantDictionary reads a variant dictionary
@@ -527,33 +582,42 @@ func (fh FileHeaders) writeTo4(w io.Writer) error {
 	compressionFlags := make([]byte, 4)
 	binary.LittleEndian.PutUint32(compressionFlags, fh.CompressionFlags)
 
-	if err := writeTo4Header(w, 1, fh.Comment); err != nil {
+	if err := writeTo4Header(w, headerIDComment, fh.Comment); err != nil {
 		return err
 	}
-	if err := writeTo4Header(w, 2, fh.CipherID); err != nil {
+	if err := writeTo4Header(w, headerIDCipherID, fh.CipherID); err != nil {
 		return err
 	}
-	if err := writeTo4Header(w, 3, compressionFlags); err != nil {
+	if err := writeTo4Header(w, headerIDCompressionsFlags, compressionFlags); err != nil {
 		return err
 	}
-	if err := writeTo4Header(w, 4, fh.MasterSeed); err != nil {
+	if err := writeTo4Header(w, headerIDMasterSeed, fh.MasterSeed); err != nil {
 		return err
 	}
-	if err := writeTo4Header(w, 7, fh.EncryptionIV); err != nil {
+	if err := writeTo4Header(w, headerIDEncryptionIV, fh.EncryptionIV); err != nil {
 		return err
 	}
 	fh.KdfParameters.updateRawData()
-	if err := writeTo4VariantDictionary(w, 11, fh.KdfParameters.RawData); err != nil {
+	if err := writeTo4VariantDictionary(
+		w,
+		headerIDKdfParameters,
+		fh.KdfParameters.RawData,
+	); err != nil {
 		return err
 	}
-	if err := writeTo4VariantDictionary(w, 12, fh.PublicCustomData); err != nil {
+	if err := writeTo4VariantDictionary(
+		w,
+		headerIDPublicCustomData,
+		fh.PublicCustomData,
+	); err != nil {
 		return err
 	}
 	// End of header
-	return writeTo4Header(w, 0, []byte{0x0D, 0x0A, 0x0D, 0x0A})
+	return writeTo4Header(w, headerIDHeaderEnd, []byte{0x0D, 0x0A, 0x0D, 0x0A})
 }
 
-// writeTo4Header is an helper to write a file header with the correct Kdbx v4 structure to the given io.Writer
+// writeTo4Header is an helper to write a file header
+// with the correct KDBX v4 structure to the given io.Writer
 func writeTo4Header(w io.Writer, id uint8, data []byte) error {
 	if len(data) > 0 {
 		if err := binary.Write(w, binary.LittleEndian, id); err != nil {
@@ -623,41 +687,42 @@ func (fh FileHeaders) writeTo31(w io.Writer) error {
 	innerRandomStreamID := make([]byte, 4)
 	binary.LittleEndian.PutUint32(innerRandomStreamID, fh.InnerRandomStreamID)
 
-	if err := writeTo31Header(w, 1, fh.Comment); err != nil {
+	if err := writeTo31Header(w, headerIDComment, fh.Comment); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 2, fh.CipherID); err != nil {
+	if err := writeTo31Header(w, headerIDCipherID, fh.CipherID); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 3, compressionFlags); err != nil {
+	if err := writeTo31Header(w, headerIDCompressionsFlags, compressionFlags); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 4, fh.MasterSeed); err != nil {
+	if err := writeTo31Header(w, headerIDMasterSeed, fh.MasterSeed); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 5, fh.TransformSeed); err != nil {
+	if err := writeTo31Header(w, headerIDTransformSeed, fh.TransformSeed); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 6, transformRounds); err != nil {
+	if err := writeTo31Header(w, headerIDTransformRounds, transformRounds); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 7, fh.EncryptionIV); err != nil {
+	if err := writeTo31Header(w, headerIDEncryptionIV, fh.EncryptionIV); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 8, fh.ProtectedStreamKey); err != nil {
+	if err := writeTo31Header(w, headerIDProtectedStreamKey, fh.ProtectedStreamKey); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 9, fh.StreamStartBytes); err != nil {
+	if err := writeTo31Header(w, headerIDStreamStartBytes, fh.StreamStartBytes); err != nil {
 		return err
 	}
-	if err := writeTo31Header(w, 10, innerRandomStreamID); err != nil {
+	if err := writeTo31Header(w, headerIDInnerRandomStream, innerRandomStreamID); err != nil {
 		return err
 	}
 	// End of header
-	return writeTo31Header(w, 0, []byte{0x0D, 0x0A, 0x0D, 0x0A})
+	return writeTo31Header(w, headerIDHeaderEnd, []byte{0x0D, 0x0A, 0x0D, 0x0A})
 }
 
-// writeTo31Header is an helper to write a file header with the correct Kdbx v3.1 structure to the given io.Writer
+// writeTo31Header is an helper to write a file header
+// with the correct KDBX v3.1 structure to the given io.Writer
 func writeTo31Header(w io.Writer, id uint8, data []byte) error {
 	if len(data) > 0 {
 		if err := binary.Write(w, binary.LittleEndian, id); err != nil {
@@ -686,7 +751,7 @@ func (vd *VariantDictionary) Get(key string) *VariantDictionaryItem {
 type formatVersion int
 
 func isKdbx4(v formatVersion) bool {
-	return v == 4
+	return v == kdbxV4Version
 }
 
 // IsKdbx4 returns true if the header version equals to 4
@@ -707,24 +772,26 @@ func (h *DBHeader) GetSha256() [32]byte {
 func (h *DBHeader) ValidateSha256(hash [32]byte) error {
 	sha := h.GetSha256()
 	if !reflect.DeepEqual(sha, hash) {
-		return errors.New("Sha256 of header mismatching")
+		return errHeaderSHA256MisMatching
 	}
 	return nil
 }
 
 // GetHmacSha256 returns the HMAC-Sha256 hash of the header
-func (h *DBHeader) GetHmacSha256(hmacKey []byte) (ret [32]byte) {
+func (h *DBHeader) GetHmacSha256(hmacKey []byte) [32]byte {
+	var ret [32]byte
+
 	hash := hmac.New(sha256.New, hmacKey)
 	hash.Write(h.RawData)
 	copy(ret[:32], hash.Sum(nil)[:32])
-	return
+	return ret
 }
 
 // ValidateHmacSha256 validates the given hash with the HMAC-Sha256 of the header
 func (h *DBHeader) ValidateHmacSha256(hmacKey []byte, hash [32]byte) error {
 	hmacSha := h.GetHmacSha256(hmacKey)
 	if !reflect.DeepEqual(hmacSha, hash) {
-		return errors.New("HMAC-Sha256 of header mismatching")
+		return errHeaderSHA256MisMatching
 	}
 	return nil
 }

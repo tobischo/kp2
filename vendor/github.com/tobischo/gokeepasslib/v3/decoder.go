@@ -6,8 +6,12 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
-	"io/ioutil"
 	"reflect"
+)
+
+var (
+	errInvalidHMACKey          = errors.New("Wrong password? HMAC-SHA256 of header mismatching")
+	errDatabaseIntegrityFailed = errors.New("Wrong password? Database integrity check failed")
 )
 
 // Decoder stores a reader which is expected to be in kdbx format
@@ -37,24 +41,31 @@ func (d *Decoder) Decode(db *Database) error {
 	// Read hashes and validate them (Kdbx v4)
 	if db.Header.IsKdbx4() {
 		db.Hashes = new(DBHashes)
-		if err := db.Hashes.readFrom(d.r); err != nil {
+		err := db.Hashes.readFrom(d.r)
+		if err != nil {
 			return err
 		}
 
 		if db.Options.ValidateHashes {
-			if err := db.Header.ValidateSha256(db.Hashes.Sha256); err != nil {
+			err = db.Header.ValidateSha256(db.Hashes.Sha256)
+			if err != nil {
 				return err
 			}
 
 			hmacKey := buildHmacKey(db, transformedKey)
-			if err := db.Header.ValidateHmacSha256(hmacKey, db.Hashes.Hmac); err != nil {
-				return errors.New("Wrong password? HMAC-SHA256 of header mismatching")
+			err = db.Header.ValidateHmacSha256(hmacKey, db.Hashes.Hmac)
+			if err != nil {
+				return errInvalidHMACKey
 			}
 		}
 	}
 
 	// Decode raw content
-	rawContent, _ := ioutil.ReadAll(d.r)
+	rawContent, _ := io.ReadAll(d.r)
+	if err != nil {
+		return err
+	}
+
 	if err := decodeRawContent(db, rawContent, transformedKey); err != nil {
 		return err
 	}
@@ -64,7 +75,8 @@ func (d *Decoder) Decode(db *Database) error {
 	// Read InnerHeader (Kdbx v4)
 	if db.Header.IsKdbx4() {
 		db.Content.InnerHeader = new(InnerHeader)
-		if err := db.Content.InnerHeader.readFrom(contentReader); err != nil {
+		err = db.Content.InnerHeader.readFrom(contentReader)
+		if err != nil {
 			return err
 		}
 	}
@@ -74,7 +86,8 @@ func (d *Decoder) Decode(db *Database) error {
 	return xmlDecoder.Decode(db.Content)
 }
 
-func decodeRawContent(db *Database, content []byte, transformedKey []byte) (err error) {
+func decodeRawContent(db *Database, content []byte, transformedKey []byte) error {
+	var err error
 	// Initialize content
 	db.Content = new(DBContent)
 
@@ -89,7 +102,7 @@ func decodeRawContent(db *Database, content []byte, transformedKey []byte) (err 
 	} else {
 		// In Kdbx v3.1 you must decrypt before parse blocks
 		reader := bytes.NewReader(content)
-		content, err = ioutil.ReadAll(reader)
+		content, err = io.ReadAll(reader)
 		if err != nil {
 			return err
 		}
@@ -106,7 +119,7 @@ func decodeRawContent(db *Database, content []byte, transformedKey []byte) (err 
 	if !db.Header.IsKdbx4() {
 		startBytes := db.Header.FileHeaders.StreamStartBytes
 		if !reflect.DeepEqual(decryptedContent[0:len(startBytes)], startBytes) {
-			return errors.New("Wrong password? Database integrity check failed")
+			return errDatabaseIntegrityFailed
 		}
 
 		decryptedContent = decryptedContent[len(startBytes):]
@@ -131,7 +144,7 @@ func decodeRawContent(db *Database, content []byte, transformedKey []byte) (err 
 		}
 		defer r.Close()
 
-		decryptedContent, _ = ioutil.ReadAll(r)
+		decryptedContent, _ = io.ReadAll(r)
 	}
 
 	db.Content.RawData = decryptedContent

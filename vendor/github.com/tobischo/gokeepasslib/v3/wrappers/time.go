@@ -16,7 +16,7 @@ import (
 // which can be used as offset here when using `.Unix()` as the conversion into an integer
 // from `time.Time`.
 // Since nix time counts since 1970-01-01, any value before that would be negative,
-// which also makes this offset negative. Substracting this value from any other
+// which also makes this offset negative. Subtracting this value from any other
 // time value will increase it by as much. So even a value before 1970 would be correct
 // converted back and forth.
 // This value is set directly as int64 const to avoid having to initialize time.Time values
@@ -56,9 +56,10 @@ func Now(options ...TimeOption) TimeWrapper {
 }
 
 // MarshalText marshals time into an RFC3339 compliant value in UTC (Kdbx v3.1)
-// On Kdbx v4 it calculates the timestamp subtracting seconds from the time date and encode it with base64
+// On Kdbx v4 it calculates the timestamp subtracting seconds
+// from the time date and encode it with base64
 func (tw TimeWrapper) MarshalText() ([]byte, error) {
-	t := time.Time(tw.Time).In(time.UTC)
+	t := tw.Time.In(time.UTC)
 	if y := t.Year(); y < 0 || y >= 10000 {
 		return nil, ErrYearOutsideOfRange
 	}
@@ -80,7 +81,8 @@ func (tw TimeWrapper) MarshalText() ([]byte, error) {
 	return ret, nil
 }
 
-// UnmarshalText take a string of format time.RFC3339 and marshals it into the TimeWrapper value (Kdbx v3.1)
+// UnmarshalText take a string of format time.RFC3339 and marshals
+// it into the TimeWrapper value (Kdbx v3.1)
 // On Kdbx v4 it calculates the time with given seconds via data byte array (base64 encoded)
 func (tw *TimeWrapper) UnmarshalText(data []byte) error {
 	var formatted bool
@@ -96,7 +98,8 @@ func (tw *TimeWrapper) UnmarshalText(data []byte) error {
 		if err != nil {
 			return err
 		}
-		if err := binary.Read(bytes.NewReader(decoded), binary.LittleEndian, &buf); err != nil {
+		err = binary.Read(bytes.NewReader(decoded), binary.LittleEndian, &buf)
+		if err != nil {
 			return err
 		}
 

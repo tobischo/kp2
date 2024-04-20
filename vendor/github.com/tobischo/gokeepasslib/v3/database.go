@@ -2,7 +2,6 @@ package gokeepasslib
 
 import (
 	"errors"
-	"fmt"
 )
 
 // ErrInvalidDatabaseOrCredentials is returned when the file cannot be read properly.
@@ -90,15 +89,18 @@ func (db *Database) getTransformedKey() ([]byte, error) {
 	return db.Credentials.buildTransformedKey(db)
 }
 
-// GetEncrypterManager returns an EncryptManager based on the master key and EncryptionIV, or nil if the type is unsupported
+// GetEncrypterManager returns an EncryptManager based on the master key and EncryptionIV,
+// or nil if the type is unsupported
 func (db *Database) GetEncrypterManager(transformedKey []byte) (*EncrypterManager, error) {
 	return NewEncrypterManager(
+		db.Header.FileHeaders.CipherID,
 		buildMasterKey(db, transformedKey),
 		db.Header.FileHeaders.EncryptionIV,
 	)
 }
 
-// GetStreamManager returns a StreamManager based on the db headers, or nil if the type is unsupported
+// GetStreamManager returns a StreamManager based on the db headers,
+// or nil if the type is unsupported
 // Can be used to lock only certain entries instead of calling
 func (db *Database) GetStreamManager() (*StreamManager, error) {
 	if db.Header != nil && db.Header.Signature != nil {
@@ -131,7 +133,8 @@ func (db *Database) GetStreamManager() (*StreamManager, error) {
 // UnlockProtectedEntries goes through the entire database and encrypts
 // any Values in entries with protected=true set.
 // This should be called after decoding if you want to view plaintext password in an entry
-// Warning: If you call this when entry values are already unlocked, it will cause them to be unreadable
+// Warning: If you call this when entry values are already unlocked,
+// it will cause them to be unreadable
 func (db *Database) UnlockProtectedEntries() error {
 	manager, err := db.GetStreamManager()
 	if err != nil {
@@ -175,10 +178,7 @@ func (db *Database) FindBinary(id int) *Binary {
 type ErrRequiredAttributeMissing string
 
 func (e ErrRequiredAttributeMissing) Error() string {
-	return fmt.Sprintf(
-		"gokeepasslib: operation can not be performed if database does not have %s",
-		string(e),
-	)
+	return "gokeepasslib: operation can not be performed if database does not have " + string(e)
 }
 
 type binariesUsages map[int][]*BinaryReference
@@ -225,7 +225,9 @@ func addEntriesBinaries(result binariesUsages, entries []Entry) {
 func addGroupBinaries(result binariesUsages, parent *Group) {
 	addEntriesBinaries(result, parent.Entries)
 	for _, group := range parent.Groups {
-		addGroupBinaries(result, &group)
+		g := group
+
+		addGroupBinaries(result, &g)
 	}
 }
 

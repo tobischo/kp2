@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 )
 
 // Inner header bytes
@@ -17,6 +16,8 @@ const (
 	InnerHeaderIRSID      byte = 0x01 // Inner header InnerRandomStreamID byte
 	InnerHeaderIRSKey     byte = 0x02 // Inner header InnerRandomStreamKey byte
 	InnerHeaderBinary     byte = 0x03 // Inner header binary byte
+
+	innerRandomStreamKeyLength = 64
 )
 
 // InnerHeader is the container of crypt options and binaries, only for Kdbx v4
@@ -50,7 +51,7 @@ func WithDBContentFormattedTime(formatted bool) DBContentOption {
 }
 
 func withDBContentKDBX4InnerHeader(content *DBContent) {
-	innerRandomStreamKey := make([]byte, 64)
+	innerRandomStreamKey := make([]byte, innerRandomStreamKeyLength)
 	rand.Read(innerRandomStreamKey)
 
 	content.InnerHeader = &InnerHeader{
@@ -110,7 +111,7 @@ ForLoop:
 			reader := bytes.NewReader(data)
 
 			binary.Read(reader, binary.LittleEndian, &protection) // Read memory protection flag
-			content, _ := ioutil.ReadAll(reader)                  // Read content
+			content, _ := io.ReadAll(reader)                      // Read content
 
 			ih.Binaries = append(
 				ih.Binaries,

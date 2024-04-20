@@ -28,4 +28,4 @@ kp2 --help
 [LICENSE](LICENSE.md)
 
 ### Copyright
-Copyright &copy; 2022 Tobias Schoknecht. All rights reserved.
+Copyright &copy; 2024 Tobias Schoknecht. All rights reserved.

@@ -9,12 +9,16 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"regexp"
 
 	"github.com/tobischo/argon2"
+)
+
+var (
+	errUnsupportedKeyFileXMLFormat = errors.New("Unsupported key file XML format")
 )
 
 // DBCredentials holds the key used to lock and unlock the database
@@ -133,7 +137,8 @@ func NewPasswordCredentials(password string) *DBCredentials {
 	return &DBCredentials{Passphrase: hashedpw[:]}
 }
 
-// ParseKeyFile returns the hashed key from a key file at the path specified by location, parsing xml if needed
+// ParseKeyFile returns the hashed key from a key file
+// at the path specified by location, parsing xml if needed
 func ParseKeyFile(location string) ([]byte, error) {
 	file, err := os.Open(location)
 	if err != nil {
@@ -141,7 +146,7 @@ func ParseKeyFile(location string) ([]byte, error) {
 	}
 
 	var data []byte
-	if data, err = ioutil.ReadAll(file); err != nil {
+	if data, err = io.ReadAll(file); err != nil {
 		return nil, err
 	}
 
@@ -176,7 +181,7 @@ func ParseKeyData(data []byte) ([]byte, error) {
 	// Check if the provided file is an XML key file
 	// errInvalidKeyFileXML is returned if it was not actually parseable xml data
 	decodedKey, err := parseXMLKeyFileData(data)
-	if err != errInvalidKeyFileXML {
+	if !errors.Is(err, errInvalidKeyFileXML) {
 		return decodedKey, err
 	}
 
@@ -218,7 +223,7 @@ func parseXMLKeyFileData(data []byte) ([]byte, error) {
 	case "2.0":
 		return parseV2XMLKeyFileData(keyFileData.Key.Data.Value, keyFileData.Key.Data.Hash)
 	default:
-		return nil, fmt.Errorf("Unsupported key file XML format %s", keyFileData.Meta.Version)
+		return nil, fmt.Errorf("%w %s", errUnsupportedKeyFileXMLFormat, keyFileData.Meta.Version)
 	}
 }
 
@@ -273,7 +278,8 @@ func NewKeyDataCredentials(data []byte) (*DBCredentials, error) {
 	return &DBCredentials{Key: key}, nil
 }
 
-// NewPasswordAndKeyCredentials builds a new DBCredentials from a password and the key file at the path specified by location
+// NewPasswordAndKeyCredentials builds a new DBCredentials from a password
+// and the key file at the path specified by location
 func NewPasswordAndKeyCredentials(password, location string) (*DBCredentials, error) {
 	key, err := ParseKeyFile(location)
 	if err != nil {
@@ -288,7 +294,8 @@ func NewPasswordAndKeyCredentials(password, location string) (*DBCredentials, er
 	}, nil
 }
 
-// NewPasswordAndKeyDataCredentials builds a new DBCredentials from a password and the key file in bytes
+// NewPasswordAndKeyDataCredentials builds a new DBCredentials
+// from a password and the key file in bytes
 func NewPasswordAndKeyDataCredentials(password string, data []byte) (*DBCredentials, error) {
 	key, err := ParseKeyData(data)
 	if err != nil {

@@ -5,12 +5,15 @@ type RootDataOption func(*RootData)
 func WithRootDataFormattedTime(formatted bool) RootDataOption {
 	return func(rd *RootData) {
 		for _, group := range rd.Groups {
-			WithGroupFormattedTime(formatted)(&group)
+			g := group
+
+			WithGroupFormattedTime(formatted)(&g)
 		}
 	}
 }
 
-// RootData stores the actual content of a database (all enteries sorted into groups and the recycle bin)
+// RootData stores the actual content of a database
+// (all enteries sorted into groups and the recycle bin)
 type RootData struct {
 	Groups         []Group             `xml:"Group"`
 	DeletedObjects []DeletedObjectData `xml:"DeletedObjects>DeletedObject"`

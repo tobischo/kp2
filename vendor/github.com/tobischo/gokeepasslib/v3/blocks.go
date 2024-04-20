@@ -7,13 +7,17 @@ import (
 	"crypto/sha512"
 	"crypto/subtle"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 )
 
 // Block size of 1MB - https://keepass.info/help/kb/kdbx_4.html#dataauth
 const blockSplitRate = 1048576
+
+var (
+	errHMACVerificationFailed = errors.New("failed to verify HMAC")
+)
 
 type BlockHMACBuilder struct {
 	baseKey []byte
@@ -46,10 +50,14 @@ func (b *BlockHMACBuilder) BuildHMAC(index uint64, length uint32, data []byte) [
 
 // decomposeContentBlocks4 decodes the content data block by block (Kdbx v4)
 // Used to extract data blocks from the entire content
-func decomposeContentBlocks4(r io.Reader, masterSeed []byte, transformedKey []byte) ([]byte, error) {
+func decomposeContentBlocks4(
+	r io.Reader,
+	masterSeed []byte,
+	transformedKey []byte,
+) ([]byte, error) {
 	var contentData []byte
 	// Get all the content
-	content, err := ioutil.ReadAll(r)
+	content, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +71,12 @@ func decomposeContentBlocks4(r io.Reader, masterSeed []byte, transformedKey []by
 		var length uint32
 
 		copy(blockHMAC[:], content[offset:offset+32])
-		offset = offset + 32
+		offset += 32
 
 		buf := bytes.NewBuffer(content[offset : offset+4])
 		binary.Read(buf, binary.LittleEndian, &length)
 
-		offset = offset + 4
+		offset += 4
 
 		data := make([]byte, length)
 		endOfData := offset + length
@@ -78,7 +86,7 @@ func decomposeContentBlocks4(r io.Reader, masterSeed []byte, transformedKey []by
 		calculatedHMAC := hmacBuilder.BuildHMAC(index, length, data)
 
 		if subtle.ConstantTimeCompare(calculatedHMAC, blockHMAC[:]) == 0 {
-			return nil, fmt.Errorf("Failed to verify HMAC for block %d", index)
+			return nil, fmt.Errorf("%w for block %d", errHMACVerificationFailed, index)
 		}
 
 		// Add to blocks
@@ -88,7 +96,7 @@ func decomposeContentBlocks4(r io.Reader, masterSeed []byte, transformedKey []by
 			break
 		}
 
-		index += 1
+		index++
 	}
 	return contentData, nil
 }
@@ -98,7 +106,7 @@ func decomposeContentBlocks4(r io.Reader, masterSeed []byte, transformedKey []by
 func decomposeContentBlocks31(r io.Reader) ([]byte, error) {
 	var contentData []byte
 	// Get all the content
-	content, err := ioutil.ReadAll(r)
+	content, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -110,18 +118,18 @@ func decomposeContentBlocks31(r io.Reader) ([]byte, error) {
 		var data []byte
 
 		// Skipping Index, uint32
-		offset = offset + 4
+		offset += 4
 
 		copy(hash[:], content[offset:offset+32])
-		offset = offset + 32
+		offset += 32
 
 		length = binary.LittleEndian.Uint32(content[offset : offset+4])
-		offset = offset + 4
+		offset += 4
 
 		if length > 0 {
 			data = make([]byte, length)
 			copy(data, content[offset:offset+length])
-			offset = offset + length
+			offset += length
 
 			// Add to decoded blocks
 			contentData = append(contentData, data...)
@@ -133,11 +141,16 @@ func decomposeContentBlocks31(r io.Reader) ([]byte, error) {
 }
 
 // composeContentBlocks4 composes every content block into a HMAC-LENGTH-DATA block scheme (Kdbx v4)
-func composeContentBlocks4(w io.Writer, contentData []byte, masterSeed []byte, transformedKey []byte) {
+func composeContentBlocks4(
+	w io.Writer,
+	contentData []byte,
+	masterSeed []byte,
+	transformedKey []byte,
+) {
 	hmacBuilder := NewBlockHMACBuilder(masterSeed, transformedKey)
 
-	offset := 0
-	endOffset := 0
+	var offset int
+	var endOffset int
 	var index = uint64(0)
 	for {
 		remainingLength := len(contentData[offset:])
@@ -165,13 +178,14 @@ func composeContentBlocks4(w io.Writer, contentData []byte, masterSeed []byte, t
 			break
 		}
 
-		index += 1
+		index++
 	}
 	binary.Write(w, binary.LittleEndian, [32]byte{})
 	binary.Write(w, binary.LittleEndian, uint32(0))
 }
 
-// composeBlocks31 composes every content block into a INDEX-SHA-LENGTH-DATA block scheme (Kdbx v3.1)
+// composeBlocks31 composes every content block
+// into a INDEX-SHA-LENGTH-DATA block scheme (Kdbx v3.1)
 func composeContentBlocks31(w io.Writer, contentData []byte) {
 	index := uint32(0)
 	offset := 0
@@ -194,7 +208,7 @@ func composeContentBlocks31(w io.Writer, contentData []byte) {
 		binary.Write(w, binary.LittleEndian, length)
 		binary.Write(w, binary.LittleEndian, data)
 		index++
-		offset = offset + blockSplitRate
+		offset += blockSplitRate
 	}
 	binary.Write(w, binary.LittleEndian, index)
 	binary.Write(w, binary.LittleEndian, [32]byte{})
