@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/bubbletea v0.25.0
+	github.com/charmbracelet/bubbletea v0.26.1
 	github.com/spf13/cobra v1.8.0
 	github.com/tobischo/gokeepasslib/v3 v3.6.0
 	golang.org/x/term v0.20.0
@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/containerd/console v1.0.4 // indirect
+	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
