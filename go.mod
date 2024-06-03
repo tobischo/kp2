@@ -4,14 +4,14 @@ go 1.22.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/bubbletea v0.26.3
+	github.com/charmbracelet/bubbletea v0.26.4
 	github.com/spf13/cobra v1.8.0
 	github.com/tobischo/gokeepasslib/v3 v3.6.0
 	golang.org/x/term v0.20.0
 )
 
 require (
-	github.com/charmbracelet/x/ansi v0.1.1 // indirect
+	github.com/charmbracelet/x/ansi v0.1.2 // indirect
 	github.com/charmbracelet/x/input v0.1.0 // indirect
 	github.com/charmbracelet/x/term v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.1.0 // indirect
