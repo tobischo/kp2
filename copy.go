@@ -20,6 +20,7 @@ func copyCmd(_ *cobra.Command, args []string) error {
 
 	markAsAccessed(entry)
 
+	fmt.Printf("Title: %s\n", entry.GetTitle())
 	fmt.Printf("URL: %s\n", entry.GetContent("URL"))
 	fmt.Printf("UserName: %s\n", entry.GetContent("UserName"))
 
