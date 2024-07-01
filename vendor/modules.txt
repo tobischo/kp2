@@ -1,7 +1,7 @@
 # github.com/atotto/clipboard v0.1.4
 ## explicit
 github.com/atotto/clipboard
-# github.com/charmbracelet/bubbletea v0.26.5
+# github.com/charmbracelet/bubbletea v0.26.6
 ## explicit; go 1.18
 github.com/charmbracelet/bubbletea
 # github.com/charmbracelet/x/ansi v0.1.2
