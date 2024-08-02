@@ -28,6 +28,10 @@ type Driver struct {
 	// up button events.
 	prevMouseState coninput.ButtonState // nolint: unused
 
+	// lastWinsizeEvent keeps track of the last window size event to prevent
+	// multiple size events from firing.
+	lastWinsizeEvent coninput.WindowBufferSizeEventRecord // nolint: unused
+
 	flags int // control the behavior of the driver.
 }
 
@@ -70,7 +74,7 @@ func (d *Driver) readEvents() (e []Event, err error) {
 	// Lookup table first
 	if bytes.HasPrefix(buf, []byte{'\x1b'}) {
 		if k, ok := d.table[string(buf)]; ok {
-			e = append(e, KeyDownEvent(k))
+			e = append(e, KeyPressEvent(k))
 			return
 		}
 	}
@@ -92,7 +96,7 @@ func (d *Driver) readEvents() (e []Event, err error) {
 		case UnknownCsiEvent, UnknownSs3Event, UnknownEvent:
 			// If the sequence is not recognized by the parser, try looking it up.
 			if k, ok := d.table[string(buf[i:i+nb])]; ok {
-				ev = KeyDownEvent(k)
+				ev = KeyPressEvent(k)
 			}
 		case PasteStartEvent:
 			d.paste = []byte{}

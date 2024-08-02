@@ -45,7 +45,7 @@ func (d *Driver) handleConInput(
 
 	var evs []Event
 	for _, event := range events {
-		if e := parseConInputEvent(event, &d.prevMouseState); e != nil {
+		if e := parseConInputEvent(event, &d.prevMouseState, &d.lastWinsizeEvent); e != nil {
 			evs = append(evs, e)
 		}
 	}
@@ -64,7 +64,7 @@ func (d *Driver) detectConInputQuerySequences(events []Event) []Event {
 loop:
 	for i, e := range events {
 		switch e := e.(type) {
-		case KeyDownEvent:
+		case KeyPressEvent:
 			switch e.Rune {
 			case ansi.ESC, ansi.CSI, ansi.OSC, ansi.DCS, ansi.APC:
 				// start of a sequence
@@ -85,7 +85,7 @@ loop:
 	var seq []byte
 	for i := start; i <= end; i++ {
 		switch e := events[i].(type) {
-		case KeyDownEvent:
+		case KeyPressEvent:
 			seq = append(seq, byte(e.Rune))
 		}
 	}
@@ -107,7 +107,7 @@ loop:
 	return events
 }
 
-func parseConInputEvent(event coninput.InputRecord, ps *coninput.ButtonState) Event {
+func parseConInputEvent(event coninput.InputRecord, ps *coninput.ButtonState, ws *coninput.WindowBufferSizeEventRecord) Event {
 	switch e := event.Unwrap().(type) {
 	case coninput.KeyEventRecord:
 		event := parseWin32InputKeyEvent(e.VirtualKeyCode, e.VirtualScanCode,
@@ -115,9 +115,9 @@ func parseConInputEvent(event coninput.InputRecord, ps *coninput.ButtonState) Ev
 
 		var key Key
 		switch event := event.(type) {
-		case KeyDownEvent:
+		case KeyPressEvent:
 			key = Key(event)
-		case KeyUpEvent:
+		case KeyReleaseEvent:
 			key = Key(event)
 		default:
 			return nil
@@ -131,35 +131,29 @@ func parseConInputEvent(event coninput.InputRecord, ps *coninput.ButtonState) Ev
 			return event
 		}
 
-		// Get active keyboard layout
-		fgWin := windows.GetForegroundWindow()
-		fgThread, err := windows.GetWindowThreadProcessId(fgWin, nil)
-		if err != nil {
-			return event
-		}
-
-		layout, err := termwindows.GetKeyboardLayout(fgThread)
-		if layout == windows.InvalidHandle || err != nil {
-			return event
-		}
+		// Always use US layout for translation
+		// This is to follow the behavior of the Kitty Keyboard base layout
+		// feature :eye_roll:
+		// https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-language-pack-default-values?view=windows-11
+		const usLayout = 0x409
 
 		// Translate key to rune
 		var keyState [256]byte
 		var utf16Buf [16]uint16
 		const dontChangeKernelKeyboardLayout = 0x4
-		ret, err := termwindows.ToUnicodeEx(
+		ret := termwindows.ToUnicodeEx(
 			uint32(e.VirtualKeyCode),
 			uint32(e.VirtualScanCode),
 			&keyState[0],
 			&utf16Buf[0],
 			int32(len(utf16Buf)),
 			dontChangeKernelKeyboardLayout,
-			layout,
+			usLayout,
 		)
 
 		// -1 indicates a dead key
 		// 0 indicates no translation for this key
-		if ret < 1 || err != nil {
+		if ret < 1 {
 			return event
 		}
 
@@ -169,17 +163,20 @@ func parseConInputEvent(event coninput.InputRecord, ps *coninput.ButtonState) Ev
 			return event
 		}
 
-		key.BaseRune = runes[0]
+		key.baseRune = runes[0]
 		if e.KeyDown {
-			return KeyDownEvent(key)
+			return KeyPressEvent(key)
 		}
 
-		return KeyUpEvent(key)
+		return KeyReleaseEvent(key)
 
 	case coninput.WindowBufferSizeEventRecord:
-		return WindowSizeEvent{
-			Width:  int(e.Size.X),
-			Height: int(e.Size.Y),
+		if e != *ws {
+			*ws = e
+			return WindowSizeEvent{
+				Width:  int(e.Size.X),
+				Height: int(e.Size.Y),
+			}
 		}
 	case coninput.MouseEventRecord:
 		mevent := mouseEvent(*ps, e)
@@ -213,16 +210,16 @@ func mouseEventButton(p, s coninput.ButtonState) (button MouseButton, isRelease 
 		return
 	}
 
-	switch {
-	case btn == coninput.FROM_LEFT_1ST_BUTTON_PRESSED: // left button
+	switch btn {
+	case coninput.FROM_LEFT_1ST_BUTTON_PRESSED: // left button
 		button = MouseLeft
-	case btn == coninput.RIGHTMOST_BUTTON_PRESSED: // right button
+	case coninput.RIGHTMOST_BUTTON_PRESSED: // right button
 		button = MouseRight
-	case btn == coninput.FROM_LEFT_2ND_BUTTON_PRESSED: // middle button
+	case coninput.FROM_LEFT_2ND_BUTTON_PRESSED: // middle button
 		button = MouseMiddle
-	case btn == coninput.FROM_LEFT_3RD_BUTTON_PRESSED: // unknown (possibly mouse backward)
+	case coninput.FROM_LEFT_3RD_BUTTON_PRESSED: // unknown (possibly mouse backward)
 		button = MouseBackward
-	case btn == coninput.FROM_LEFT_4TH_BUTTON_PRESSED: // unknown (possibly mouse forward)
+	case coninput.FROM_LEFT_4TH_BUTTON_PRESSED: // unknown (possibly mouse forward)
 		button = MouseForward
 	}
 
@@ -233,13 +230,13 @@ func mouseEvent(p coninput.ButtonState, e coninput.MouseEventRecord) (ev Event) 
 	var mod KeyMod
 	var isRelease bool
 	if e.ControlKeyState.Contains(coninput.LEFT_ALT_PRESSED | coninput.RIGHT_ALT_PRESSED) {
-		mod |= Alt
+		mod |= ModAlt
 	}
 	if e.ControlKeyState.Contains(coninput.LEFT_CTRL_PRESSED | coninput.RIGHT_CTRL_PRESSED) {
-		mod |= Ctrl
+		mod |= ModCtrl
 	}
 	if e.ControlKeyState.Contains(coninput.SHIFT_PRESSED) {
-		mod |= Shift
+		mod |= ModShift
 	}
 	m := Mouse{
 		X:   int(e.MousePositon.X),
@@ -269,8 +266,8 @@ func mouseEvent(p coninput.ButtonState, e coninput.MouseEventRecord) (ev Event) 
 	if isWheel(m.Button) {
 		return MouseWheelEvent(m)
 	} else if isRelease {
-		return MouseUpEvent(m)
+		return MouseReleaseEvent(m)
 	}
 
-	return MouseDownEvent(m)
+	return MouseClickEvent(m)
 }

@@ -179,49 +179,97 @@ const (
 
 // Key represents a key event.
 type Key struct {
-	Sym      KeySym
-	Rune     rune
-	AltRune  rune
-	BaseRune rune
+	// Sym is a special key, like enter, tab, backspace, and so on.
+	Sym KeySym
+
+	// Rune is the actual character received. If the user presses shift+a, the
+	// Rune will be 'A'.
+	Rune rune
+
+	// AltRune is the actual, unshifted key pressed by the user. For example,
+	// if the user presses shift+a, or caps lock is on, the AltRune will be
+	// 'a'.
+	//
+	// In the case of non-latin keyboards, like Arabic, AltRune is the
+	// unshifted key on the keyboard.
+	//
+	// This is only available with the Kitty Keyboard Protocol or the Windows
+	// Console API.
+	AltRune rune
+
+	// baseRune is the key pressed according to the standard PC-101 key layout.
+	// On internaltional keyboards, this is the key that would be pressed if
+	// the keyboard was set to US layout.
+	//
+	// For example, if the user presses 'q' on a French AZERTY keyboard, the
+	// baseRune will be 'q'.
+	//
+	// This is only available with the Kitty Keyboard Protocol or the Windows
+	// Console API.
+	baseRune rune
+
+	// Mod is a modifier key, like ctrl, alt, and so on.
+	Mod KeyMod
+
+	// IsRepeat indicates whether the key is being held down and sending events
+	// repeatedly.
+	//
+	// This is only available with the Kitty Keyboard Protocol or the Windows
+	// Console API.
 	IsRepeat bool
-	Mod      KeyMod
 }
 
-// KeyDownEvent represents a key down event.
-type KeyDownEvent Key
+// KeyPressEvent represents a key press event.
+type KeyPressEvent Key
 
-// String implements fmt.Stringer.
-func (k KeyDownEvent) String() string {
+// String implements fmt.Stringer and is quite useful for matching key
+// events. For details, on what this returns see [Key.String].
+func (k KeyPressEvent) String() string {
 	return Key(k).String()
 }
 
-// KeyUpEvent represents a key up event.
-type KeyUpEvent Key
+// KeyReleaseEvent represents a key release event.
+type KeyReleaseEvent Key
 
-// String implements fmt.Stringer.
-func (k KeyUpEvent) String() string {
+// String implements fmt.Stringer and is quite useful for matching complex key
+// events. For details, on what this returns see [Key.String].
+func (k KeyReleaseEvent) String() string {
 	return Key(k).String()
 }
 
-// String implements fmt.Stringer.
+// String implements fmt.Stringer and is used to convert a key to a string.
+// While less type safe than looking at the individual fields, it will usually
+// be more convenient and readable to use this method when matching against
+// keys.
+//
+// Note that modifier keys are always printed in the following order:
+//   - ctrl
+//   - alt
+//   - shift
+//   - meta
+//   - hyper
+//   - super
+//
+// For example, you'll always see "ctrl+shift+alt+a" and never
+// "shift+ctrl+alt+a".
 func (k Key) String() string {
 	var s string
-	if k.Mod.IsCtrl() && k.Sym != KeyLeftCtrl && k.Sym != KeyRightCtrl {
+	if k.Mod.HasCtrl() && k.Sym != KeyLeftCtrl && k.Sym != KeyRightCtrl {
 		s += "ctrl+"
 	}
-	if k.Mod.IsAlt() && k.Sym != KeyLeftAlt && k.Sym != KeyRightAlt {
+	if k.Mod.HasAlt() && k.Sym != KeyLeftAlt && k.Sym != KeyRightAlt {
 		s += "alt+"
 	}
-	if k.Mod.IsShift() && k.Sym != KeyLeftShift && k.Sym != KeyRightShift {
+	if k.Mod.HasShift() && k.Sym != KeyLeftShift && k.Sym != KeyRightShift {
 		s += "shift+"
 	}
-	if k.Mod.IsMeta() && k.Sym != KeyLeftMeta && k.Sym != KeyRightMeta {
+	if k.Mod.HasMeta() && k.Sym != KeyLeftMeta && k.Sym != KeyRightMeta {
 		s += "meta+"
 	}
-	if k.Mod.IsHyper() && k.Sym != KeyLeftHyper && k.Sym != KeyRightHyper {
+	if k.Mod.HasHyper() && k.Sym != KeyLeftHyper && k.Sym != KeyRightHyper {
 		s += "hyper+"
 	}
-	if k.Mod.IsSuper() && k.Sym != KeyLeftSuper && k.Sym != KeyRightSuper {
+	if k.Mod.HasSuper() && k.Sym != KeyLeftSuper && k.Sym != KeyRightSuper {
 		s += "super+"
 	}
 
@@ -232,10 +280,10 @@ func (k Key) String() string {
 		}
 		return string(r)
 	}
-	if k.BaseRune != 0 {
-		// If a BaseRune is present, use it to represent a key using the standard
+	if k.baseRune != 0 {
+		// If a baseRune is present, use it to represent a key using the standard
 		// PC-101 key layout.
-		s += runeStr(k.BaseRune)
+		s += runeStr(k.baseRune)
 	} else if k.AltRune != 0 {
 		// Otherwise, use the AltRune aka the non-shifted one if present.
 		s += runeStr(k.AltRune)
@@ -248,7 +296,8 @@ func (k Key) String() string {
 	return s
 }
 
-// String implements fmt.Stringer.
+// String implements fmt.Stringer and prints the string representation of a of
+// a Symbol key.
 func (k KeySym) String() string {
 	s, ok := keySymString[k]
 	if !ok {
