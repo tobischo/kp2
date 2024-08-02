@@ -37,7 +37,7 @@ func loadDatabaseCmd(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("Failed to setup credentials: '%w'", err)
 	}
 
-	db = new(gokeepasslib.Database)
+	db = gokeepasslib.NewDatabase()
 	db.Credentials = credentials
 
 	file, err := os.Open(filePath)
