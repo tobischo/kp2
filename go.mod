@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.26.6
 	github.com/spf13/cobra v1.8.1
 	github.com/tobischo/gokeepasslib/v3 v3.6.0
-	golang.org/x/term v0.22.0
+	golang.org/x/term v0.23.0
 )
 
 require (
@@ -27,6 +27,6 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 )
