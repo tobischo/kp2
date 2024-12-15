@@ -65,20 +65,11 @@ linters:
     - funlen
     - cyclop
     - gofumpt
-    - deadcode
-    - interfacer
-    - maligned
-    - nosnakecase
-    - scopelint
-    - structcheck
-    - varcheck
     - wrapcheck
     - stylecheck
     - testableexamples
-    - ifshort
     - errcheck
     - nestif
-    - exhaustivestruct
     - govet
     - musttag
     - nilnil
@@ -86,9 +77,10 @@ linters:
     - gocritic # suggests some changes that are not necessarily better
     - gocognit
     - dupl
-    - golint
     - ireturn
     - unused
+    - exportloopref
+    - execinquery
 
 issues:
   max-ame-issues: 50
