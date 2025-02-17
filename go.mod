@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/bubbletea v1.3.0
+	github.com/charmbracelet/bubbletea v1.3.3
 	github.com/spf13/cobra v1.8.1
 	github.com/tobischo/gokeepasslib/v3 v3.6.1
 	golang.org/x/term v0.29.0
@@ -31,7 +31,7 @@ require (
 	github.com/tobischo/argon2 v0.1.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )
