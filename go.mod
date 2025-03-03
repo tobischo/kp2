@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/bubbletea v1.3.3
+	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/spf13/cobra v1.9.1
 	github.com/tobischo/gokeepasslib/v3 v3.6.1
 	golang.org/x/term v0.29.0
