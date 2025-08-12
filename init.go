@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tobischo/gokeepasslib/v3"
-
 	"github.com/spf13/cobra"
+	"github.com/tobischo/gokeepasslib/v3"
 )
 
 func initCmd(_ *cobra.Command, _ []string) error {

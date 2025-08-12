@@ -5,7 +5,6 @@ import (
 	"syscall"
 
 	"github.com/tobischo/gokeepasslib/v3"
-
 	"golang.org/x/term"
 )
 

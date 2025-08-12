@@ -3,10 +3,9 @@ package main
 import (
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/tobischo/gokeepasslib/v3"
 	"github.com/tobischo/gokeepasslib/v3/wrappers"
-
-	"github.com/spf13/cobra"
 )
 
 func addCmd(_ *cobra.Command, args []string) error {

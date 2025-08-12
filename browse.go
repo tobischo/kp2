@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/tobischo/gokeepasslib/v3"
-
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+	"github.com/tobischo/gokeepasslib/v3"
 )
 
 type viewMode string
