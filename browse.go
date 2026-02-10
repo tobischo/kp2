@@ -504,7 +504,7 @@ func (m model) updateAddForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.formInputs[m.formFocus].Focus()
 		return m, textinput.Blink
 
-	case msg.String() == "ctrl+s":
+	case key.Matches(msg, m.keys.Enter):
 		// Submit form - create new entry
 		entry := m.createEntryFromForm()
 		m.groupCursor.group.Entries = append(m.groupCursor.group.Entries, entry)
@@ -543,7 +543,7 @@ func (m model) updateEditForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.formInputs[m.formFocus].Focus()
 		return m, textinput.Blink
 
-	case msg.String() == "ctrl+s":
+	case key.Matches(msg, m.keys.Enter):
 		// Submit form - update entry
 		m.updateEntryFromForm()
 		changed = true
@@ -600,7 +600,7 @@ func (m model) updateCreateGroup(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.mode = viewModeList
 		m.groupInput.Blur()
 
-	case msg.String() == "ctrl+s", key.Matches(msg, m.keys.Enter):
+	case key.Matches(msg, m.keys.Enter):
 		groupName := m.groupInput.Value()
 		if groupName != "" {
 			newGroup := gokeepasslib.NewGroup()
@@ -968,7 +968,7 @@ func (m model) viewForm(title string) string {
 	}
 
 	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().Foreground(mutedColor).Render("Tab: next field • Ctrl+S: save • Esc: cancel"))
+	s.WriteString(lipgloss.NewStyle().Foreground(mutedColor).Render("Tab: next field • Enter: submit • Esc: cancel"))
 
 	return s.String()
 }
