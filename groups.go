@@ -9,7 +9,7 @@ import (
 )
 
 func listGroups(g *gokeepasslib.Group) []string {
-	var groups = make([]string, 0)
+	var groups = make([]string, 0, len(g.Groups)+1)
 
 	groups = append(groups, g.Name)
 

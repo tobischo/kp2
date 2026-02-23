@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,8 +36,8 @@ type model struct {
 
 	groupCursor *groupCursor
 
-	choices []interface{} // items on the to-do list
-	cursor  int           // which to-do list item our cursor is pointing at
+	choices []any // items on the to-do list
+	cursor  int   // which to-do list item our cursor is pointing at
 }
 
 func initiateModel(group *gokeepasslib.Group) model {
@@ -52,8 +53,9 @@ func initiateModel(group *gokeepasslib.Group) model {
 	}
 }
 
-func prepareChoices(group *gokeepasslib.Group) []interface{} {
-	choices := []interface{}{}
+func prepareChoices(group *gokeepasslib.Group) []any {
+	// the assumption is that every group would have at least 1 entry
+	choices := make([]any, 0, len(group.Groups)+len(group.Entries))
 	for _, group := range group.Groups {
 		choices = append(choices, group)
 	}
@@ -157,8 +159,10 @@ func (m model) View() string {
 }
 
 func (m model) viewList() string {
+	builder := strings.Builder{}
+
 	// The header
-	s := "Pick an entry\n\n"
+	builder.WriteString("Pick an entry\n\n")
 
 	// Iterate over our choices
 	for i, choice := range m.choices {
@@ -171,16 +175,16 @@ func (m model) viewList() string {
 		// Render the row
 		switch t := choice.(type) {
 		case gokeepasslib.Group:
-			s += fmt.Sprintf("%s %s [>]\n", cursor, t.Name)
+			builder.WriteString(fmt.Sprintf("%s %s [>]\n", cursor, t.Name))
 		case gokeepasslib.Entry:
-			s += fmt.Sprintf("%s %s\n", cursor, t.GetTitle())
+			builder.WriteString(fmt.Sprintf("%s %s\n", cursor, t.GetTitle()))
 		default:
-			s += fmt.Sprintf("unsupported type %T\n", t)
+			builder.WriteString(fmt.Sprintf("unsupported type %T\n", t))
 		}
 	}
 
 	// Send the UI for rendering
-	return s
+	return builder.String()
 }
 
 func (m model) viewEntry() string {

@@ -16,7 +16,7 @@ func markAsAccessed(entry *gokeepasslib.Entry) {
 }
 
 func listEntries(g *gokeepasslib.Group) []string {
-	var entries = make([]string, 0)
+	var entries = make([]string, 0, len(g.Entries)+len(g.Groups))
 
 	for _, entry := range g.Entries {
 		entries = append(entries, entry.GetTitle())

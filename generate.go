@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
@@ -81,7 +82,7 @@ func generateCmd(_ *cobra.Command, _ []string) error {
 }
 
 func generatePassword(baseBytes string, length int) (string, error) {
-	var password string
+	passwordBuilder := strings.Builder{}
 
 	for range length {
 		val, err := rand.Int(rand.Reader, big.NewInt(int64(len(baseBytes))))
@@ -89,8 +90,8 @@ func generatePassword(baseBytes string, length int) (string, error) {
 			return "", err
 		}
 
-		password += string(baseBytes[val.Int64()])
+		passwordBuilder.WriteString(string(baseBytes[val.Int64()]))
 	}
 
-	return password, nil
+	return passwordBuilder.String(), nil
 }
