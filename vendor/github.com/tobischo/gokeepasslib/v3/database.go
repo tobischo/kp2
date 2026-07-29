@@ -2,6 +2,7 @@ package gokeepasslib
 
 import (
 	"errors"
+	"fmt"
 )
 
 // ErrInvalidDatabaseOrCredentials is returned when the file cannot be read properly.
@@ -31,17 +32,34 @@ func WithDatabaseFormattedTime(formatted bool) DatabaseOption {
 	}
 }
 
+// WithDatabaseKDBXVersion3 initializes the database as a KDBX 3.1 file
 func WithDatabaseKDBXVersion3() DatabaseOption {
 	return func(db *Database) {
 		db.Header = NewKDBX3Header()
 	}
 }
 
-func WithDatabaseKDBXVersion4() DatabaseOption {
+// WithDatabaseKDBXVersion40 initializes the database as a KDBX 4.0 file
+func WithDatabaseKDBXVersion40() DatabaseOption {
 	return func(db *Database) {
-		db.Header = NewKDBX4Header()
+		db.Header = NewKDBX40Header()
 		withDBContentKDBX4InnerHeader(db.Content)
 	}
+}
+
+// WithDatabaseKDBXVersion41 initializes the database as a KDBX 4.1 file
+func WithDatabaseKDBXVersion41() DatabaseOption {
+	return func(db *Database) {
+		db.Header = NewKDBX41Header()
+		withDBContentKDBX4InnerHeader(db.Content)
+	}
+}
+
+// WithDatabaseKDBXVersion4 initializes the database as a KDBX 4.0 file
+//
+// Deprecated: use WithDatabaseKDBXVersion40 instead
+func WithDatabaseKDBXVersion4() DatabaseOption {
+	return WithDatabaseKDBXVersion40()
 }
 
 // NewDatabase creates a new database with some sensable default settings in KDBX version 3.1.
@@ -75,9 +93,82 @@ func NewOptions() *DBOptions {
 	}
 }
 
+// ensureRequiredKdbxFormatVersion raises the file format version of the header
+// if the content of the database can not be represented in the current one.
+//
+// This follows KeePass, which writes a database with the lowest file format
+// version that is able to hold its content, and which never lowers the version
+// of an existing file.
+//
+// Upgrading from KDBX 4.0 to KDBX 4.1 only requires a different version in the
+// signature, since both share the same binary file format.
+// Upgrading a KDBX 3.1 file on the other hand would mean changing the structure
+// of the file itself, e.g. the key derivation function, the inner header and the
+// place where binaries are stored, which has to be requested explicitly instead
+// of happening as a side effect of encoding.
+func (db *Database) ensureRequiredKdbxFormatVersion() error {
+	field := db.Content.kdbx41Field()
+	if field == "" || db.Header.IsKdbx41() {
+		return nil
+	}
+
+	if !db.Header.IsKdbx4() {
+		return ErrKdbxVersionUpgradeRequired{
+			Field:           field,
+			CurrentVersion:  db.Header.formatVersion().String(),
+			RequiredVersion: formatVersion41.String(),
+		}
+	}
+
+	// Copy the signature before changing it, since it may be pointing at one of
+	// the package level default signatures
+	signature := *db.Header.Signature
+	signature.MinorVersion = 1
+	db.Header.Signature = &signature
+
+	return nil
+}
+
 func (db *Database) ensureKdbxFormatVersion() {
 	db.Content.setKdbxFormatVersion(
 		db.Header.formatVersion(),
+	)
+}
+
+// Names of the fields which can only be represented in KDBX 4.1 files.
+// They are reported by ErrKdbxVersionUpgradeRequired.
+const (
+	fieldGroupPreviousParentGroup       = "Group.PreviousParentGroup"
+	fieldGroupTags                      = "Group.Tags"
+	fieldEntryQualityCheck              = "Entry.QualityCheck"
+	fieldEntryPreviousParentGroup       = "Entry.PreviousParentGroup"
+	fieldCustomIconName                 = "CustomIcon.Name"
+	fieldCustomIconLastModificationTime = "CustomIcon.LastModificationTime"
+	fieldCustomDataLastModificationTime = "CustomData.LastModificationTime"
+)
+
+// ErrKdbxVersionUpgradeRequired is returned when encoding a database whose
+// content can not be represented in the file format version of its header,
+// and where upgrading it automatically would require changing the structure
+// of the file itself.
+type ErrKdbxVersionUpgradeRequired struct {
+	// Field is the name of a field which requires the higher version
+	Field string
+
+	// CurrentVersion is the file format version of the database header
+	CurrentVersion string
+
+	// RequiredVersion is the file format version required by the content
+	RequiredVersion string
+}
+
+func (e ErrKdbxVersionUpgradeRequired) Error() string {
+	return fmt.Sprintf(
+		"gokeepasslib: %s requires a KDBX %s file, but the database is a KDBX %s file. "+
+			"Create the database with WithDatabaseKDBXVersion41() to write it",
+		e.Field,
+		e.RequiredVersion,
+		e.CurrentVersion,
 	)
 }
 
@@ -132,6 +223,7 @@ func (db *Database) GetStreamManager() (*StreamManager, error) {
 
 // UnlockProtectedEntries goes through the entire database and encrypts
 // any Values in entries with protected=true set.
+// It also unlocks protected binaries in the KDBX v3.1 metadata section.
 // This should be called after decoding if you want to view plaintext password in an entry
 // Warning: If you call this when entry values are already unlocked,
 // it will cause them to be unreadable
@@ -143,18 +235,29 @@ func (db *Database) UnlockProtectedEntries() error {
 	if manager == nil {
 		return ErrUnsupportedStreamType
 	}
+	if db.Content.Meta != nil {
+		if err := manager.unlockProtectedBinaries(db.Content.Meta.Binaries); err != nil {
+			return err
+		}
+	}
 	manager.UnlockProtectedGroups(db.Content.Root.Groups)
 	return nil
 }
 
 // LockProtectedEntries goes through the entire database and decrypts
 // any Values in entries with protected=true set.
+// It also locks protected binaries in the KDBX v3.1 metadata section.
 // Warning: Do not call this if entries are already locked
 // Warning: Encoding a database calls LockProtectedEntries automatically
 func (db *Database) LockProtectedEntries() error {
 	manager, err := db.GetStreamManager()
 	if err != nil {
 		return err
+	}
+	if db.Content.Meta != nil {
+		if err := manager.lockProtectedBinaries(db.Content.Meta.Binaries); err != nil {
+			return err
+		}
 	}
 	manager.LockProtectedGroups(db.Content.Root.Groups)
 	return nil

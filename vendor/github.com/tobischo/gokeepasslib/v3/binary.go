@@ -18,11 +18,18 @@ type Binaries []Binary
 
 // Binary stores a binary found in the metadata header of a database
 type Binary struct {
-	ID               int           `xml:"ID,attr"`         // Index (Manually counted on KDBX v4)
-	MemoryProtection byte          `xml:"-"`               // Memory protection flag (Only KDBX v4)
-	Content          []byte        `xml:",innerxml"`       // Binary content
-	Compressed       w.BoolWrapper `xml:"Compressed,attr"` // Compressed flag (Only KDBX v3.1)
-	isKDBX4          bool          `xml:"-"`
+	ID               int            `xml:"ID,attr"`                  // Index (manual on KDBX v4)
+	MemoryProtection byte           `xml:"-"`                        // Memory protection (KDBX v4)
+	Content          []byte         `xml:",innerxml"`                // Binary content
+	Compressed       w.BoolWrapper  `xml:"Compressed,attr"`          // Compressed flag (KDBX v3.1)
+	Protected        *w.BoolWrapper `xml:"Protected,attr,omitempty"` // Stream cipher flag (KDBX v3.1)
+	isKDBX4          bool           `xml:"-"`
+}
+
+// isStreamProtected reports whether the binary content is encrypted with the
+// inner stream cipher (KDBX v3.1 meta binaries with `Protected="True"`)
+func (b *Binary) isStreamProtected() bool {
+	return b.Protected != nil && b.Protected.Bool
 }
 
 // BinaryReference stores a reference to a binary which appears in the xml of an entry
@@ -100,13 +107,18 @@ func (bs *Binaries) Add(c []byte, options ...BinaryOption) *Binary {
 func (b Binary) GetContentBytes() ([]byte, error) {
 	// Check for base64 content (KDBX 3.1), if it fail try with KDBX 4
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b.Content)))
-	_, err := base64.StdEncoding.Decode(decoded, b.Content)
+	n, err := base64.StdEncoding.Decode(decoded, b.Content)
 	if err != nil {
 		// KDBX 4 doesn't encode it
 		decoded = b.Content[:]
+	} else {
+		decoded = decoded[:n]
 	}
 
-	if b.Compressed.Bool {
+	// KeePass never compresses the content of a stream protected binary and
+	// ignores the Compressed flag while reading one, so it is ignored here too.
+	// See SubWriteValue and ReadProtectedBinary in the KeePass sources.
+	if b.Compressed.Bool && !b.isStreamProtected() {
 		reader, err := gzip.NewReader(bytes.NewReader(decoded))
 		if err != nil {
 			return nil, err
@@ -149,6 +161,8 @@ func (wc writeCloser) Close() error {
 }
 
 // SetContent encodes and (if Compressed=true) compresses c and sets b's content
+//
+// The content of a stream protected binary is never compressed, matching KeePass
 func (b *Binary) SetContent(c []byte) error {
 	buff := &bytes.Buffer{}
 
@@ -160,7 +174,7 @@ func (b *Binary) SetContent(c []byte) error {
 		writer = base64.NewEncoder(base64.StdEncoding, buff)
 	}
 
-	if b.Compressed.Bool {
+	if b.Compressed.Bool && !b.isStreamProtected() {
 		writer = gzip.NewWriter(writer)
 	}
 	_, err := writer.Write(c)

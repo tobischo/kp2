@@ -20,6 +20,15 @@ type MetaDataOption func(*MetaData)
 type CustomIcon struct {
 	UUID UUID   `xml:"UUID"` // Entry's CustomIcon UUID should match this
 	Data string `xml:"Data"` // base64 encoded PNG icon.  Unknown size constraints
+
+	Name                 string         `xml:"Name,omitempty"`                 // KDBX 4.1
+	LastModificationTime *w.TimeWrapper `xml:"LastModificationTime,omitempty"` // KDBX 4.1
+}
+
+func (ci *CustomIcon) setKdbxFormatVersion(version formatVersion) {
+	if ci.LastModificationTime != nil {
+		ci.LastModificationTime.Formatted = !isKdbx4(version)
+	}
 }
 
 func WithMetaDataFormattedTime(formatted bool) MetaDataOption {
@@ -40,6 +49,12 @@ func NewMetaData(options ...MetaDataOption) *MetaData {
 		HistoryMaxItems:        10,
 		HistoryMaxSize:         6291456, // 6 MB
 		MaintenanceHistoryDays: 365,
+
+		// These elements have to contain a UUID,
+		// so they are initialized as a zero UUID instead of an empty value
+		EntryTemplatesGroup: ZeroUUIDText,
+		LastSelectedGroup:   ZeroUUIDText,
+		LastTopVisibleGroup: ZeroUUIDText,
 	}
 
 	for _, option := range options {
@@ -103,4 +118,26 @@ func (md *MetaData) setKdbxFormatVersion(version formatVersion) {
 	if md.EntryTemplatesGroupChanged != nil {
 		md.EntryTemplatesGroupChanged.Formatted = !isKdbx4(version)
 	}
+
+	for i := range md.CustomIcons {
+		(&md.CustomIcons[i]).setKdbxFormatVersion(version)
+	}
+
+	setCustomDataKdbxFormatVersion(md.CustomData, version)
+}
+
+// kdbx41Field returns the name of the first field of the meta data which can
+// only be represented in KDBX 4.1 files, or an empty string if there is none
+func (md *MetaData) kdbx41Field() string {
+	for i := range md.CustomIcons {
+		if md.CustomIcons[i].Name != "" {
+			return fieldCustomIconName
+		}
+
+		if md.CustomIcons[i].LastModificationTime != nil {
+			return fieldCustomIconLastModificationTime
+		}
+	}
+
+	return customDataKdbx41Field(md.CustomData)
 }
