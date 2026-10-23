@@ -5,8 +5,8 @@ import (
 	"compress/gzip"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
-	"reflect"
 )
 
 var (
@@ -32,13 +32,9 @@ func (d *Decoder) Decode(db *Database) error {
 		return err
 	}
 
-	// Calculate transformed key to decrypt and calculate HMAC
-	transformedKey, err := db.getTransformedKey()
-	if err != nil {
-		return err
-	}
-
-	// Read hashes and validate them (Kdbx v4)
+	// Read hashes and validate the header hash (Kdbx v4)
+	// The header is validated before calculating the transformed key, so the
+	// key derivation never runs on the parameters of a corrupted header
 	if db.Header.IsKdbx4() {
 		db.Hashes = new(DBHashes)
 		err := db.Hashes.readFrom(d.r)
@@ -51,7 +47,18 @@ func (d *Decoder) Decode(db *Database) error {
 			if err != nil {
 				return err
 			}
+		}
+	}
 
+	// Calculate transformed key to decrypt and calculate HMAC
+	transformedKey, err := db.getTransformedKey()
+	if err != nil {
+		return err
+	}
+
+	// Validate the header HMAC (Kdbx v4)
+	if db.Header.IsKdbx4() {
+		if db.Options.ValidateHashes {
 			hmacKey := buildHmacKey(db, transformedKey)
 			err = db.Header.ValidateHmacSha256(hmacKey, db.Hashes.Hmac)
 			if err != nil {
@@ -61,7 +68,7 @@ func (d *Decoder) Decode(db *Database) error {
 	}
 
 	// Decode raw content
-	rawContent, _ := io.ReadAll(d.r)
+	rawContent, err := io.ReadAll(d.r)
 	if err != nil {
 		return err
 	}
@@ -84,6 +91,24 @@ func (d *Decoder) Decode(db *Database) error {
 	// Decode xml
 	xmlDecoder := xml.NewDecoder(contentReader)
 	return xmlDecoder.Decode(db.Content)
+}
+
+// readBytes reads exactly length bytes from r.
+// Unlike allocating length bytes upfront, the result only grows with the data
+// actually read, so a damaged length cannot cause a huge allocation
+func readBytes(r io.Reader, length int64) ([]byte, error) {
+	if length < 0 {
+		return nil, fmt.Errorf("%w: negative length %d", ErrCorruptedDatabase, length)
+	}
+
+	data, err := io.ReadAll(io.LimitReader(r, length))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) != length {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return data, nil
 }
 
 func decodeRawContent(db *Database, content []byte, transformedKey []byte) error {
@@ -113,12 +138,30 @@ func decodeRawContent(db *Database, content []byte, transformedKey []byte) error
 	if err != nil {
 		return err
 	}
+
+	// Block ciphers in CBC mode panic on an IV which is not a single block
+	// and can only decrypt whole blocks, which a truncated file lacks
+	blockSize := cipherBlockSize(db.Header.FileHeaders.CipherID)
+	if blockSize > 0 && len(db.Header.FileHeaders.EncryptionIV) != blockSize {
+		return fmt.Errorf(
+			"%w: encryption IV of %d bytes does not match the cipher block size",
+			ErrCorruptedDatabase,
+			len(db.Header.FileHeaders.EncryptionIV),
+		)
+	}
+	if blockSize > 0 && len(content)%blockSize != 0 {
+		return fmt.Errorf(
+			"%w: encrypted content of %d bytes is no multiple of the cipher block size",
+			ErrCorruptedDatabase,
+			len(content),
+		)
+	}
 	decryptedContent := encrypter.Decrypt(content)
 
 	// Check for StreamStartBytes (Kdbx v3.1)
 	if !db.Header.IsKdbx4() {
 		startBytes := db.Header.FileHeaders.StreamStartBytes
-		if !reflect.DeepEqual(decryptedContent[0:len(startBytes)], startBytes) {
+		if !bytes.HasPrefix(decryptedContent, startBytes) {
 			return errDatabaseIntegrityFailed
 		}
 
@@ -144,7 +187,14 @@ func decodeRawContent(db *Database, content []byte, transformedKey []byte) error
 		}
 		defer r.Close()
 
-		decryptedContent, _ = io.ReadAll(r)
+		// KeePass writes a single gzip stream. The content of a block cipher
+		// is followed by its padding, which must not be read as another stream
+		r.Multistream(false)
+
+		decryptedContent, err = io.ReadAll(r)
+		if err != nil {
+			return err
+		}
 	}
 
 	db.Content.RawData = decryptedContent

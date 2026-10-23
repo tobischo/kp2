@@ -324,7 +324,6 @@ func (h *DBHeader) readFrom(r io.Reader) error {
 func (fh *FileHeaders) readHeader4(r io.Reader) error {
 	var id uint8
 	var length uint32
-	var data []byte
 
 	if err := binary.Read(r, binary.LittleEndian, &id); err != nil {
 		return err
@@ -332,8 +331,8 @@ func (fh *FileHeaders) readHeader4(r io.Reader) error {
 	if err := binary.Read(r, binary.LittleEndian, &length); err != nil {
 		return err
 	}
-	data = make([]byte, length)
-	if err := binary.Read(r, binary.LittleEndian, &data); err != nil {
+	data, err := readBytes(r, int64(length))
+	if err != nil {
 		return err
 	}
 
@@ -344,7 +343,6 @@ func (fh *FileHeaders) readHeader4(r io.Reader) error {
 func (fh *FileHeaders) readHeader31(r io.Reader) error {
 	var id uint8
 	var length uint16
-	var data []byte
 
 	if err := binary.Read(r, binary.LittleEndian, &id); err != nil {
 		return err
@@ -352,8 +350,8 @@ func (fh *FileHeaders) readHeader31(r io.Reader) error {
 	if err := binary.Read(r, binary.LittleEndian, &length); err != nil {
 		return err
 	}
-	data = make([]byte, length)
-	if err := binary.Read(r, binary.LittleEndian, &data); err != nil {
+	data, err := readBytes(r, int64(length))
+	if err != nil {
 		return err
 	}
 
@@ -370,12 +368,18 @@ func (fh *FileHeaders) readFileHeader(id uint8, data []byte) error {
 	case headerIDCipherID:
 		fh.CipherID = data
 	case headerIDCompressionsFlags:
+		if err := checkValueLength("header", id, data, 4); err != nil {
+			return err
+		}
 		fh.CompressionFlags = binary.LittleEndian.Uint32(data)
 	case headerIDMasterSeed:
 		fh.MasterSeed = data
 	case headerIDTransformSeed:
 		fh.TransformSeed = data
 	case headerIDTransformRounds:
+		if err := checkValueLength("header", id, data, 8); err != nil {
+			return err
+		}
 		fh.TransformRounds = binary.LittleEndian.Uint64(data)
 	case headerIDEncryptionIV:
 		fh.EncryptionIV = data
@@ -384,6 +388,9 @@ func (fh *FileHeaders) readFileHeader(id uint8, data []byte) error {
 	case headerIDStreamStartBytes:
 		fh.StreamStartBytes = data
 	case headerIDInnerRandomStream:
+		if err := checkValueLength("header", id, data, 4); err != nil {
+			return err
+		}
 		fh.InnerRandomStreamID = binary.LittleEndian.Uint32(data)
 	case headerIDKdfParameters:
 		fh.KdfParameters = new(KdfParameters)
@@ -397,6 +404,32 @@ func (fh *FileHeaders) readFileHeader(id uint8, data []byte) error {
 	return nil
 }
 
+// kdfParameterSizes are the minimum sizes of the kdf parameters which are converted
+var kdfParameterSizes = map[string]int{
+	"R": 8,
+	"S": 32,
+	"P": 4,
+	"M": 8,
+	"I": 8,
+	"V": 4,
+}
+
+// checkValueLength checks that the value of a header or kdf parameter holds
+// at least the expected size before it is converted
+func checkValueLength(kind string, id any, value []byte, size int) error {
+	if len(value) < size {
+		return fmt.Errorf(
+			"%w: %s %v has %d bytes, expected %d",
+			ErrCorruptedDatabase,
+			kind,
+			id,
+			len(value),
+			size,
+		)
+	}
+	return nil
+}
+
 // readKdfParameters reads a variant dictionary and puts values into KdfParameters
 func (k *KdfParameters) readKdfParameters(data []byte) error {
 	dict := new(VariantDictionary)
@@ -406,6 +439,12 @@ func (k *KdfParameters) readKdfParameters(data []byte) error {
 
 	k.RawData = dict
 	for _, item := range dict.Items {
+		if size, ok := kdfParameterSizes[string(item.Name)]; ok {
+			if err := checkValueLength("kdf parameter", string(item.Name), item.Value, size); err != nil {
+				return err
+			}
+		}
+
 		switch string(item.Name) {
 		case "$UUID":
 			k.UUID = item.Value
@@ -565,19 +604,18 @@ func (vd *VariantDictionary) readVariantDictionary(data []byte) error {
 		}
 
 		if vdi.Type != 0x00 {
-			if err := binary.Read(r, binary.LittleEndian, &vdi.NameLength); err != nil {
+			var err error
+			if err = binary.Read(r, binary.LittleEndian, &vdi.NameLength); err != nil {
 				return err
 			}
-			vdi.Name = make([]byte, vdi.NameLength)
-			if err := binary.Read(r, binary.LittleEndian, &vdi.Name); err != nil {
+			if vdi.Name, err = readBytes(r, int64(vdi.NameLength)); err != nil {
 				return err
 			}
 
-			if err := binary.Read(r, binary.LittleEndian, &vdi.ValueLength); err != nil {
+			if err = binary.Read(r, binary.LittleEndian, &vdi.ValueLength); err != nil {
 				return err
 			}
-			vdi.Value = make([]byte, vdi.ValueLength)
-			if err := binary.Read(r, binary.LittleEndian, &vdi.Value); err != nil {
+			if vdi.Value, err = readBytes(r, int64(vdi.ValueLength)); err != nil {
 				return err
 			}
 

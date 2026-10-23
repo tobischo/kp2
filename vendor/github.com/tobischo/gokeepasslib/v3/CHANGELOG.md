@@ -1,5 +1,41 @@
 ### TO BE RELEASED
 
+### v3.7.1
+
+* Return an error instead of panicking when decoding a truncated or corrupted
+  database file
+    - Adds `ErrCorruptedDatabase`, which is wrapped by the returned error
+    - Content blocks are read without trusting their length, a damaged length
+      allocated up to 4 GiB before. The same applies to the lengths in the
+      header, the inner header and the KDF parameters
+    - The hash and index of each KDBX v3.1 content block are verified, as KeePass
+      does, so corrupted content is no longer decoded silently
+    - Encrypted content which is not a multiple of the block size of AES or
+      TwoFish, or an encryption IV of the wrong size, is rejected before
+      decrypting it
+    - Header and KDF parameter values which are too short for their type, missing
+      KDF parameters and argon2 parameters of zero are rejected
+* Validate the SHA-256 of a KDBX v4 header before deriving the key, so the key
+  derivation never runs on the parameters of a corrupted header
+* Return the errors of reading the content and of decompressing it, which were
+  ignored before
+    - The gzip stream is read as a single stream, so the padding of the block
+      cipher which follows it is no longer read as another stream
+* Unlock protected values in the order in which they appear in the XML document
+    - Entries and groups which alternate within a group (e.g. Entry, Group,
+      Entry), as written by some KeePass clients, were unlocked as two blocks before,
+      which corrupted the protected values after the first subgroup. Only
+      whether the first child was an entry or a group was taken into account
+    - The same applies to a `<String>` which follows a `<History>` within an
+      entry, as written by some KeePass libraries
+    - Entries and groups added after decoding are unlocked after the decoded
+      ones, in the order of the struct
+    - Locking resets the recorded document order, since values are locked in
+      the order of the struct. Unmarshalled values which are locked and then
+      unlocked again were corrupted before if they were not in that order
+    - Note that `Entry` now has an unexported field like `Group`, so comparing
+      entries with go-cmp requires `cmp.AllowUnexported(Entry{})`
+
 ### v3.7.0
 
 * Add support for stream protected binaries in the KDBX v3.1 metadata section

@@ -2,6 +2,7 @@ package gokeepasslib
 
 import (
 	"bytes"
+	"crypto/aes"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -81,6 +82,18 @@ func NewEncrypterManager(
 	}
 }
 
+// cipherBlockSize returns the block size of the block cipher with the given
+// cipher ID, or 0 for a stream cipher
+func cipherBlockSize(cipherID []byte) int {
+	switch {
+	case bytes.Equal(cipherID, CipherAES), bytes.Equal(cipherID, CipherTwoFish):
+		// AES and TwoFish both use blocks of 128 bits
+		return aes.BlockSize
+	default:
+		return 0
+	}
+}
+
 // NewStreamManager initialize a new StreamManager
 func NewStreamManager(id uint32, key []byte) (*StreamManager, error) {
 	switch id {
@@ -140,22 +153,28 @@ func (cs *StreamManager) UnlockProtectedGroups(gs []Group) {
 
 // UnlockProtectedGroup unlocks a protected group
 func (cs *StreamManager) UnlockProtectedGroup(g *Group) {
-	// Some KDBX files have groups defined before entries depending on the tool that
-	// they were created with.
-	// This also influences the locking order for the stream processing.
-	// In order to correctly check the order we have to check based on the groupChildOrder value
-	// this is set during unmarshalling
-	if g.groupChildOrder == groupChildOrderGroupFirst {
-		cs.UnlockProtectedGroups(g.Groups)
-		cs.UnlockProtectedEntries(g.Entries)
-	} else {
-		cs.UnlockProtectedEntries(g.Entries)
-		cs.UnlockProtectedGroups(g.Groups)
+	// The inner random stream has to be consumed in the order of the XML
+	// document, in which some tools interleave entries and groups, e.g. by
+	// writing the groups first. This order is recorded during unmarshalling
+	var entries, groups int
+	for _, child := range g.childOrder {
+		switch {
+		case child == xmlChildEntry && entries < len(g.Entries):
+			cs.UnlockProtectedEntry(&g.Entries[entries])
+			entries++
+		case child == xmlChildGroup && groups < len(g.Groups):
+			cs.UnlockProtectedGroup(&g.Groups[groups])
+			groups++
+		}
 	}
 
-	// unset groupChildOrder as for future marshalling the order in the struct superseeds
+	// Children which were not unmarshalled follow in the order of the struct
+	cs.UnlockProtectedEntries(g.Entries[entries:])
+	cs.UnlockProtectedGroups(g.Groups[groups:])
+
+	// unset childOrder as for future marshalling the order in the struct superseeds
 	// the order in the XML
-	g.groupChildOrder = groupChildOrderDefault
+	g.childOrder = nil
 }
 
 // UnlockProtectedEntries unlocks an array of protected entries
@@ -167,13 +186,38 @@ func (cs *StreamManager) UnlockProtectedEntries(e []Entry) {
 
 // UnlockProtectedEntry unlocks a protected entry
 func (cs *StreamManager) UnlockProtectedEntry(e *Entry) {
-	for i := range e.Values {
-		if e.Values[i].Value.Protected.Bool {
-			e.Values[i].Value.Content = string(cs.Unpack(e.Values[i].Value.Content))
+	// The inner random stream has to be consumed in the order of the XML
+	// document, in which some tools write values after the history. This order
+	// is recorded during unmarshalling
+	var values, histories int
+	for _, child := range e.childOrder {
+		switch {
+		case child == xmlChildValue && values < len(e.Values):
+			cs.unlockProtectedValue(&e.Values[values])
+			values++
+		case child == xmlChildHistory && histories < len(e.Histories):
+			cs.UnlockProtectedEntries(e.Histories[histories].Entries)
+			histories++
 		}
 	}
-	for i := range e.Histories {
-		cs.UnlockProtectedEntries(e.Histories[i].Entries)
+
+	// Children which were not unmarshalled follow in the order of the struct
+	for i := range e.Values[values:] {
+		cs.unlockProtectedValue(&e.Values[values+i])
+	}
+	for i := range e.Histories[histories:] {
+		cs.UnlockProtectedEntries(e.Histories[histories+i].Entries)
+	}
+
+	// unset childOrder as for future marshalling the order in the struct superseeds
+	// the order in the XML
+	e.childOrder = nil
+}
+
+// unlockProtectedValue unlocks a value if it is protected
+func (cs *StreamManager) unlockProtectedValue(v *ValueData) {
+	if v.Value.Protected.Bool {
+		v.Value.Content = string(cs.Unpack(v.Value.Content))
 	}
 }
 
@@ -188,6 +232,10 @@ func (cs *StreamManager) LockProtectedGroups(gs []Group) {
 func (cs *StreamManager) LockProtectedGroup(g *Group) {
 	cs.LockProtectedEntries(g.Entries)
 	cs.LockProtectedGroups(g.Groups)
+
+	// unset childOrder as the values are locked in the order of the struct,
+	// which is also the order in which they are marshalled
+	g.childOrder = nil
 }
 
 // LockProtectedEntries locks an array of unprotected entries
@@ -207,6 +255,10 @@ func (cs *StreamManager) LockProtectedEntry(e *Entry) {
 	for i := range e.Histories {
 		cs.LockProtectedEntries(e.Histories[i].Entries)
 	}
+
+	// unset childOrder as the values are locked in the order of the struct,
+	// which is also the order in which they are marshalled
+	e.childOrder = nil
 }
 
 // unlockProtectedBinaries unlocks the stream-protected binaries of a KDBX v3.1
